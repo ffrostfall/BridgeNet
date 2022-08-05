@@ -1,0 +1,9 @@
+[package]
+name = "ffrostflame/bridgenet"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+description = "A feature-packed networking library oriented towards optimization and ease of usage."
+license = "MIT"
+
+[dependencies]
