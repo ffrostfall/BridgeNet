@@ -15,6 +15,8 @@ local serdeLayer = {}
 
 local AutoSerde: Folder = nil
 
+type toSend = string
+
 if RunService:IsClient() then
 	AutoSerde = ReplicatedStorage:WaitForChild("AutoSerde")
 	for _, v in pairs(AutoSerde:GetChildren()) do
@@ -49,7 +51,7 @@ end
 	@param toSend "id" | "compressed"
 	@return string?
 ]=]
-function serdeLayer.WhatIsThis(str: string, toSend: "id" | "compressed"): string?
+function serdeLayer.WhatIsThis(str: string, toSend: toSend): string?
 	if toSend == "id" then
 		return receiveDict[str]
 	elseif toSend == "compressed" then
