@@ -62,7 +62,8 @@ end
 
 --[=[
 	This creates an identifier and associates it with a compressed value. This is shared between the server and the client.
-
+	If the identifier already exists, it will be returned.
+	
 	```lua
 		BridgeNet.CreateIdentifier("Something")
 		
@@ -70,10 +71,14 @@ end
 	```
 	
 	@param id string
-	@return nil
+	@return string
 ]=]
 function serdeLayer.CreateIdentifier(id: string): string
 	assert(RunService:IsServer(), "You cannot create identifiers on the client.")
+
+	if sendDict[id] then
+		return sendDict[id]
+	end
 
 	if numOfSerials > 65536 then
 		error("Over the identification cap: " .. id)
