@@ -1,1 +1,4 @@
-# Not usable right now. Still W.I.P, open because asking for code review most likely.
+## coming features:
+- using attributes instead of instances for the serde layer
+- middleware and rate limiting. there's internal support right now, but I delayed it for a later date due to some architecture concerns.
+- typechecking

@@ -12,16 +12,15 @@ trying to be as non-intrusive as possible.
 - A multitude of utility functions such as ``:FireAllInRange()``, ``:FireAllExcept``, and ``:FireAllInRangeExcept``.
 - Directly cutting down the amount of data it takes to call a remote event
 - Easy-to-use, dynamic serialization/deserialization layer
-- Support for rate limiting and middleware
 - Dynamic send/receive rates
 - Dynamically creating RemoteEvents while keeping all the above features
 
-## Upcoming features
-- Logging
+## Upcoming features (order = priority)
+- Support for rate limiting and middleware
 - Typechecking
+- Easy logging support
 - RemoteFunction-esque functions (this would support promises)
 - Using attributes instead of value objects
-- Easy support for *external* logging
 
 ## Prior art
 - RbxNet

@@ -355,7 +355,7 @@ function ServerBridge:FireToMultiple(plrs: { Player }, ...: any): nil
 	return nil
 end
 
---[=[
+--[[
 	Sets the rate limit, and allows handling when the limit is hit.
 	It's possible to override the rate limit with the rate limit handler.
 	
@@ -373,8 +373,8 @@ end
 	@param requestsPerMinute number
 	@param rateLimitHandler (sender: Player, requests: number) -> boolean?
 	@return nil
-]=]
-function ServerBridge:Ratelimit(
+]]
+--[[function ServerBridge:Ratelimit(
 	requestsPerMinute: number,
 	rateLimitHandler: (sender: Player, requests: number) -> boolean?
 )
@@ -389,9 +389,9 @@ function ServerBridge:Ratelimit(
 				)
 			)
 		end
-end
+end]]
 
---[=[
+--[[
 	Sets the middleware function to be used. You must call the connection callback or it won't run.
 	Keep in mind, even if the middleware says not to run the connections, it will still affect rate limits.
 	
@@ -408,10 +408,10 @@ end
 	
 	@param func (connectCallback: () -> nil, playerCalling: Player, ...) -> nil
 	@return nil
-]=]
-function ServerBridge:SetMiddleware(func: (connectCallback: () -> nil, playerCalling: Player) -> nil) -- for some reason varargs don't play nicely with types
+]]
+--[[function ServerBridge:SetMiddleware(func: (connectCallback: () -> nil, playerCalling: Player) -> nil) -- for some reason varargs don't play nicely with types
 	self._middleware = func
-end
+end]]
 
 --[=[
 	Creates a connection.
