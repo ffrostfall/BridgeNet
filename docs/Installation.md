@@ -15,5 +15,5 @@ BridgeNet = ffrostflame/bridgenet@0.1.0
 3. Run ``wally install``
 
 ## Without Wally
-1. Get the ``.rbxm`` file from the latest [release]().
+1. Get the ``.rbxm`` file from the latest [release](https://github.com/ffrostflame/BridgeNet/releases).
 2. Sync manually or drop into studio manually

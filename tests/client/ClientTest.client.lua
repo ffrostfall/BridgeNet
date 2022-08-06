@@ -9,8 +9,12 @@ BridgeNet.Start({
 
 local Object = BridgeNet.CreateBridge("Test")
 
+local TestRemote = ReplicatedStorage:WaitForChild("TestRemote")
+
+TestRemote.OnClientEvent:Connect(function() end)
+
 Object:Connect(function(arg1, arg2, arg3)
-	print(arg1, arg2, arg3)
+	print(arg1)
 end)
 
 while task.wait(1) do

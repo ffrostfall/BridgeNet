@@ -32,6 +32,20 @@ export type config = {
 	@param remoteName string
 	@return ServerBridge | ClientBridge
 ]=]
+
+--[=[
+	@function FromBridge
+	@within Network
+	
+	Fetches a ServerBridge or ClientBridge from the string provided.
+	
+	```lua
+	local Bridge = Network.FromBridge("Remote")
+	```
+	
+	@param remoteName string
+	@return ServerBridge | ClientBridge | nil
+]=]
 return {
 	CreateIdentifier = serdeLayer.CreateIdentifier,
 	WhatIsThis = serdeLayer.WhatIsThis,
@@ -41,6 +55,13 @@ return {
 	SetReceiveRate = rateManager.SetReceiveRate,
 	GetReceiveRate = rateManager.GetReceiveRate,
 
+	FromBridge = function(str)
+		if isServer then
+			return ServerBridge.from(str)
+		else
+			return ClientBridge.from(str)
+		end
+	end,
 	CreateBridge = function(str)
 		if isServer then
 			return ServerBridge.new(str)

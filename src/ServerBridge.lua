@@ -34,6 +34,15 @@ local activeConfig
 local ServerBridge = {}
 ServerBridge.__index = ServerBridge
 
+local function constructTable(remoteId, args)
+	local tbl = {}
+	table.insert(tbl, remoteId)
+	for _, v in pairs(args) do
+		table.insert(tbl, v)
+	end
+	return tbl
+end
+
 --[=[
 	Starts the internal processes for ServerBridge.
 	
@@ -55,49 +64,60 @@ function ServerBridge._start(config: config): nil
 		local sendRate = rateManager.GetSendRate()
 		local receiveRate = rateManager.GetReceiveRate()
 
-		if (os.clock() - lastClear) > 60 then
+		--[[if (os.clock() - lastClear) > 60 then
 			lastClear = os.clock()
 
-			for _, v in pairs(BridgeObjects) do
+			for _, v in ipairs(BridgeObjects) do
 				v._rateInThisMinute = 0
 			end
-		end
+		end]]
 
 		if (os.clock() - lastSend) >= sendRate then
 			lastSend = os.clock()
 
 			local toSendAll = {}
 			local toSendPlayers = {}
-			for _, v in pairs(SendQueue) do
+			for _, v in ipairs(SendQueue) do
 				if v.plrs == "all" then
-					table.insert(toSendAll, {
-						v.remote,
-						v.args,
-					})
+					local tbl = {}
+					table.insert(tbl, v.remote)
+					for _, k in pairs(v.args) do
+						table.insert(tbl, k)
+					end
+					table.insert(toSendAll, tbl)
 				elseif typeof(v.plrs) == "table" then
-					for _, k in pairs(v.plrs) do
-						if toSendPlayers[k] == nil then
-							toSendPlayers[k] = {}
+					for _, l in ipairs(v.plrs) do
+						if toSendPlayers[l] == nil then
+							toSendPlayers[l] = {}
 						end
-						table.insert(toSendPlayers[k], {
-							v.remote,
-							v.args,
-						})
+						local tbl = {}
+						table.insert(tbl, v.remote)
+						for _, m in pairs(v.args) do
+							table.insert(tbl, m)
+						end
+						table.insert(toSendPlayers[l], tbl)
+						print(toSendPlayers[l])
 					end
 				else
 					if toSendPlayers[v.plrs] == nil then
 						toSendPlayers[v.plrs] = {}
 					end
-					table.insert(toSendPlayers[v.plrs], {
-						v.remote,
-						v.args,
-					})
+					local tbl = {}
+					table.insert(tbl, v.remote)
+					for _, n in pairs(v.args) do
+						table.insert(tbl, n)
+					end
+					table.insert(toSendPlayers[v.plrs], tbl)
 				end
 			end
 
 			RemoteEvent:FireAllClients(toSendAll)
 			for l, k in pairs(toSendPlayers) do
 				RemoteEvent:FireClient(l, k)
+				print(k)
+			end
+			if #toSendAll ~= 0 then
+				print(toSendAll)
 			end
 			SendQueue = {}
 		end
@@ -105,10 +125,10 @@ function ServerBridge._start(config: config): nil
 		if (os.clock() - lastReceive) >= receiveRate then
 			lastReceive = os.clock()
 
-			for _, v in pairs(ReceiveQueue) do
+			for _, v in ipairs(ReceiveQueue) do
 				local obj = BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]
 
-				for _, k in pairs(obj._connections) do
+				for _, k in ipairs(obj._connections) do
 					k(v.plr, table.unpack(v.args))
 				end
 			end
@@ -119,12 +139,16 @@ function ServerBridge._start(config: config): nil
 	end)
 
 	RemoteEvent.OnServerEvent:Connect(function(plr, tbl)
-		for _, v in pairs(tbl) do
-			table.insert(ReceiveQueue, {
-				remote = v[1],
+		for _, v in ipairs(tbl) do
+			local args = v
+			local remote = args[1]
+			table.remove(args, 1)
+			local toInsert = {
+				remote = remote,
 				plr = plr,
-				args = v[2],
-			})
+				args = args,
+			}
+			table.insert(ReceiveQueue, toInsert)
 		end
 	end)
 
@@ -154,6 +178,10 @@ function ServerBridge.new(remoteName: string)
 	return self
 end
 
+function ServerBridge.from(remoteName: string)
+	return BridgeObjects[remoteName]
+end
+
 --[=[
 	Sends data to a specific player.
 	
@@ -167,11 +195,11 @@ end
 	@return nil
 ]=]
 function ServerBridge:FireTo(plr: Player, ...: any)
-	local args: { any } = table.pack(...)
+	local args: { any } = { ... }
 	local toSend: queueSendPacket = {
 		plrs = plr,
 		remote = self._id,
-		args = table.pack(...),
+		args = args,
 	}
 	table.insert(SendQueue, toSend)
 end
@@ -207,7 +235,7 @@ function ServerBridge:FireToAllExcept(blacklistedPlrs: Player | { Player }, ...:
 	local toSendPacket: queueSendPacket = {
 		plrs = toSend,
 		remote = self._id,
-		args = table.pack(...),
+		args = { ... },
 	}
 	table.insert(SendQueue, toSendPacket)
 
@@ -263,7 +291,7 @@ function ServerBridge:FireAllInRangeExcept(
 	local toSendPacket: queueSendPacket = {
 		plrs = toSend,
 		remote = self._id,
-		args = table.pack(...),
+		args = { ... },
 	}
 	table.insert(SendQueue, toSendPacket)
 
@@ -303,8 +331,9 @@ function ServerBridge:FireAllInRange(point: Vector3, range: number, ...: any): {
 	local toSendPacket: queueSendPacket = {
 		plrs = toSend,
 		remote = self._id,
-		args = table.pack(...),
+		args = { ... },
 	}
+	print(toSendPacket)
 	table.insert(SendQueue, toSendPacket)
 
 	return toSend
@@ -322,7 +351,7 @@ end
 	@return nil
 ]=]
 function ServerBridge:FireAll(...: any): nil
-	local args: { any } = table.pack(...)
+	local args: { any } = { ... }
 	local toSend: queueSendPacket = {
 		plrs = "all",
 		remote = self._id,
@@ -345,7 +374,7 @@ end
 	@return nil
 ]=]
 function ServerBridge:FireToMultiple(plrs: { Player }, ...: any): nil
-	local args: { any } = table.pack(...)
+	local args: { any } = { ... }
 	local toSend: queueSendPacket = {
 		plrs = plrs,
 		remote = self._id,
@@ -449,7 +478,7 @@ end
 ]=]
 function ServerBridge:Destroy()
 	serdeLayer.DestroyIdentifier(self.Name)
-	for k, v in pairs(self) do
+	for k, v in ipairs(self) do
 		if v.Destroy ~= nil then
 			v:Destroy()
 		else

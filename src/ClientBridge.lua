@@ -38,20 +38,22 @@ function ClientBridge._start(config)
 
 		if (os.clock() - lastSend) > rateManager.GetSendRate() then
 			local toSend = {}
-			for _, v in pairs(SendQueue) do
-				local value: sendPacketQueue = {
-					v.remote,
-					v.args,
-				}
-				table.insert(toSend, value)
+			for _, v in ipairs(SendQueue) do
+				local tbl = {}
+				table.insert(tbl, v.remote)
+				for _, k in pairs(v.args) do
+					table.insert(tbl, k)
+				end
+
+				table.insert(toSend, tbl)
 			end
 			RemoteEvent:FireServer(toSend)
 			SendQueue = {}
 		end
 
 		if (os.clock() - lastReceive) > rateManager.GetReceiveRate() then
-			for _, v in pairs(ReceiveQueue) do
-				for _, k in pairs(BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]._connections) do
+			for _, v in ipairs(ReceiveQueue) do
+				for _, k in ipairs(BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]._connections) do
 					k(table.unpack(v.args))
 				end
 			end
@@ -62,11 +64,15 @@ function ClientBridge._start(config)
 	end)
 
 	RemoteEvent.OnClientEvent:Connect(function(tbl)
-		for _, v in pairs(tbl) do
+		for _, v in ipairs(tbl) do
+			local params = v
+			local remote = params[1]
+			table.remove(params, 1)
 			table.insert(ReceiveQueue, {
-				remote = v[1],
-				args = v[2],
+				remote = remote,
+				args = params,
 			})
+			print(v)
 		end
 	end)
 end
@@ -83,6 +89,10 @@ function ClientBridge.new(remoteName: string)
 	return self
 end
 
+function ClientBridge.from(remoteName: string)
+	return BridgeObjects[remoteName]
+end
+
 --[=[
 	The equivelant of :FireServer().
 	
@@ -97,7 +107,7 @@ end
 function ClientBridge:Fire(...: any)
 	table.insert(SendQueue, {
 		remote = self._id,
-		args = table.pack(...),
+		args = { ... },
 	})
 end
 
@@ -136,7 +146,7 @@ end
 ]=]
 function ClientBridge:Destroy()
 	BridgeObjects[self._name] = nil
-	for k, v in pairs(self) do
+	for k, v in ipairs(self) do
 		if v.Destroy ~= nil then
 			v:Destroy()
 		else
