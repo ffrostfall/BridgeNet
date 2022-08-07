@@ -83,7 +83,6 @@ function ClientBridge._start(config)
 				remote = remote,
 				args = params,
 			})
-			print(v)
 		end
 	end)
 end
