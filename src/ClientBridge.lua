@@ -47,14 +47,25 @@ function ClientBridge._start(config)
 
 				table.insert(toSend, tbl)
 			end
-			RemoteEvent:FireServer(toSend)
+			if #toSend ~= 0 then
+				RemoteEvent:FireServer(toSend)
+			end
 			SendQueue = {}
 		end
 
 		if (os.clock() - lastReceive) > rateManager.GetReceiveRate() then
 			for _, v in ipairs(ReceiveQueue) do
-				for _, k in ipairs(BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]._connections) do
-					k(table.unpack(v.args))
+				local _, err = pcall(function()
+					local remoteName = serdeLayer.WhatIsThis(v.remote, "id")
+					if BridgeObjects[remoteName] == nil then
+						error("[BridgeNet] Client received non-existant Bridge. Naming mismatch?")
+					end
+					for _, k in ipairs(BridgeObjects[remoteName]._connections) do
+						k(table.unpack(v.args))
+					end
+				end)
+				if err then
+					warn(err)
 				end
 			end
 			ReceiveQueue = {}
@@ -78,6 +89,7 @@ function ClientBridge._start(config)
 end
 
 function ClientBridge.new(remoteName: string)
+	assert(type(remoteName) == "string", "[BridgeNet] Remote name must be a string")
 	local self = setmetatable({}, ClientBridge)
 
 	self._name = remoteName
@@ -90,6 +102,7 @@ function ClientBridge.new(remoteName: string)
 end
 
 function ClientBridge.from(remoteName: string)
+	assert(type(remoteName) == "string", "[BridgeNet] Remote name must be a string")
 	return BridgeObjects[remoteName]
 end
 
@@ -125,6 +138,7 @@ end
 	@param func function
 ]=]
 function ClientBridge:Connect(func: (...any) -> nil)
+	assert(type(func) == "function", "[BridgeNet] Attempt to connect non-function to a Bridge")
 	local index = table.insert(self._connections, func)
 	return {
 		Disconnect = function()
