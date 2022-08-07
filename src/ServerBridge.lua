@@ -96,7 +96,6 @@ function ServerBridge._start(config: config): nil
 							table.insert(tbl, m)
 						end
 						table.insert(toSendPlayers[l], tbl)
-						print(toSendPlayers[l])
 					end
 				else
 					if toSendPlayers[v.plrs] == nil then
@@ -332,7 +331,6 @@ function ServerBridge:FireAllInRange(point: Vector3, range: number, ...: any): {
 		remote = self._id,
 		args = { ... },
 	}
-	print(toSendPacket)
 	table.insert(SendQueue, toSendPacket)
 
 	return toSend
