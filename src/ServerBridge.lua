@@ -111,13 +111,11 @@ function ServerBridge._start(config: config): nil
 				end
 			end
 
-			RemoteEvent:FireAllClients(toSendAll)
+			if #toSendAll ~= 0 then
+				RemoteEvent:FireAllClients(toSendAll)
+			end
 			for l, k in pairs(toSendPlayers) do
 				RemoteEvent:FireClient(l, k)
-				print(k)
-			end
-			if #toSendAll ~= 0 then
-				print(toSendAll)
 			end
 			SendQueue = {}
 		end
@@ -156,6 +154,7 @@ function ServerBridge._start(config: config): nil
 end
 
 function ServerBridge.new(remoteName: string)
+	assert(type(remoteName) == "string", "[BridgeNet] Remote name must be a string")
 	local self = setmetatable({}, ServerBridge)
 
 	self._name = remoteName
