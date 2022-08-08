@@ -24,10 +24,10 @@ while task.wait(1) do -- For normal tests, do task.wait
 	Object:FireAll("Received: FireAll")
 
 	-- When stress testing, set the task.wait(1) to task.wait().
-	for i = 1, 200 do
+	--[[for i = 1, 200 do
 		Object:FireAll()
 	end
 	for i = 1, 200 do
 		TestRemote:FireAllClients()
-	end
+	end]]
 end
