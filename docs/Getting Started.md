@@ -8,8 +8,8 @@ BridgeNet requires you to run the ``Start`` function with a configuration object
 local BridgeNet = require(ReplicatedStorage.Packages.BridgeNet)
 
 BridgeNet.Start({
-	default_send_rate = 60,
-	default_receive_rate = 60,
+	send_default_rate = 60,
+	receive_default_rate = 60,
 })
 ```
 This starts up all the internal BridgeNet processes, and allows you to use the library. It should be called once per server/client. You do not
