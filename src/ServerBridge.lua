@@ -34,15 +34,6 @@ local activeConfig
 local ServerBridge = {}
 ServerBridge.__index = ServerBridge
 
-local function constructTable(remoteId, args)
-	local tbl = {}
-	table.insert(tbl, remoteId)
-	for _, v in pairs(args) do
-		table.insert(tbl, v)
-	end
-	return tbl
-end
-
 --[=[
 	Starts the internal processes for ServerBridge.
 	

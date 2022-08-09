@@ -1,4 +1,5 @@
 --!strict
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage: ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService: RunService = game:GetService("RunService")
 
@@ -17,31 +18,45 @@ local AutoSerde: Folder = nil
 
 type toSend = string
 
-if RunService:IsClient() then
-	AutoSerde = ReplicatedStorage:WaitForChild("AutoSerde")
-	for _, v in pairs(AutoSerde:GetChildren()) do
-		local strValue = v :: StringValue
-		sendDict[strValue.Name] = strValue.Value
-		receiveDict[strValue.Value] = strValue.Name
+local function fromHex(toConvert: string): string
+	return (toConvert:gsub("..", function(cc)
+		return string.char(tonumber(cc, 16))
+	end))
+end
+
+local function toHex(toConvert: string): string
+	return (toConvert:gsub(".", function(c)
+		return string.format("%02X", string.byte(c))
+	end))
+end
+
+function serdeLayer._start()
+	if RunService:IsClient() then
+		AutoSerde = ReplicatedStorage:WaitForChild("AutoSerde")
+		for _, v in pairs(AutoSerde:GetChildren()) do
+			local strValue = v :: StringValue
+			sendDict[strValue.Name] = strValue.Value
+			receiveDict[strValue.Value] = strValue.Name
+		end
+		AutoSerde.ChildAdded:Connect(function(child: Instance)
+			local strValue = child :: StringValue
+			sendDict[strValue.Name] = strValue.Value
+			receiveDict[strValue.Value] = strValue.Name
+		end)
+		AutoSerde.ChildRemoved:Connect(function(child: Instance)
+			local strValue = child :: StringValue
+			sendDict[strValue.Name] = nil
+			receiveDict[strValue.Value] = nil
+		end)
+	else
+		AutoSerde = Instance.new("Folder")
+		AutoSerde.Name = "AutoSerde"
+		AutoSerde.Parent = ReplicatedStorage
 	end
-	AutoSerde.ChildAdded:Connect(function(child: Instance)
-		local strValue = child :: StringValue
-		sendDict[strValue.Name] = strValue.Value
-		receiveDict[strValue.Value] = strValue.Name
-	end)
-	AutoSerde.ChildRemoved:Connect(function(child: Instance)
-		local strValue = child :: StringValue
-		sendDict[strValue.Name] = nil
-		receiveDict[strValue.Value] = nil
-	end)
-else
-	AutoSerde = Instance.new("Folder")
-	AutoSerde.Name = "AutoSerde"
-	AutoSerde.Parent = ReplicatedStorage
 end
 
 --[=[
-	This takes a compressed value and returns the identification related to it, and does the reverse.	
+	Takes a compressed value and returns the identification related to it, and does the reverse.	
 
 	```lua
 		print(BridgeNet.WhatIsThis("SomeIdentificationStringHere")) -- prints the compressed value
@@ -61,7 +76,7 @@ function serdeLayer.WhatIsThis(str: string, toSend: toSend): string?
 end
 
 --[=[
-	This creates an identifier and associates it with a compressed value. This is shared between the server and the client.
+	Creates an identifier and associates it with a compressed value. This is shared between the server and the client.
 	If the identifier already exists, it will be returned.
 	
 	```lua
@@ -75,6 +90,7 @@ end
 ]=]
 function serdeLayer.CreateIdentifier(id: string): string
 	assert(RunService:IsServer(), "You cannot create identifiers on the client.")
+	assert(type(id) ~= "string", "ID must be a string")
 
 	if sendDict[id] then
 		return sendDict[id]
@@ -97,7 +113,7 @@ function serdeLayer.CreateIdentifier(id: string): string
 end
 
 --[=[
-	This creates an identifier and associates it with a compressed value. This is shared between the server and the client.
+	Creates an identifier and associates it with a compressed value. This is shared between the server and the client.
 
 	```lua
 		BridgeNet.DestroyIdentifier("Something")
@@ -110,6 +126,7 @@ end
 ]=]
 function serdeLayer.DestroyIdentifier(id: string): nil
 	assert(RunService:IsServer(), "You cannot destroy identifiers on the client.")
+	assert(type(id) ~= "string", "ID must be a string")
 
 	receiveDict[sendDict[id]] = nil
 	sendDict[id] = nil
@@ -118,6 +135,76 @@ function serdeLayer.DestroyIdentifier(id: string): nil
 
 	AutoSerde:FindFirstChild(id):Destroy()
 	return nil
+end
+
+--[=[
+	Creates a UUID.
+
+	```lua
+		print(BridgeNet.CreateUUID()) -- Prints 93179AF839C94B9C975DB1B4A4352D75
+	```
+	
+	@return string
+]=]
+function serdeLayer.CreateUUID()
+	return HttpService:GenerateGUID(false):gsub("-", "")
+end
+
+--[=[
+	Packs a UUID in hexadecimal form into a string, which can be sent over network as smaller.
+
+	```lua
+		print(BridgeNet.PackUUID(BridgeNet.CreateUUID())) -- prints something like �#F}ЉF��\�rY�*
+	```
+	
+	@param uuid string
+	@return string
+]=]
+function serdeLayer.PackUUID(uuid: string): string
+	return fromHex(uuid)
+end
+
+--[=[
+	Takes a packed UUID and convetrs it into hexadecimal/readable form
+
+	```lua
+		print(BridgeNet.UnpackUUID(somePackedUUID)) -- Prints 93179AF839C94B9C975DB1B4A4352D75
+	```
+	
+	@param uuid string
+	@return string
+]=]
+function serdeLayer.UnpackUUID(uuid: string): string
+	return toHex(uuid)
+end
+
+--[=[
+	Alphabetically sorts a dictionary and turns it into a table. Useful because string keys are typically unnecessary when sending things
+	over the wire.
+	
+	Please note: This doesn't play too nicely with special characters.
+
+	```lua
+		print(BridgeNet.DictionaryToTable({ alpha = 999, bravo = 1000, charlie = 1001, delta = 1002 })) -- prints {999,1000,1001,1002}
+	```
+	
+	@param dictionary {[string]: any}
+	@return string
+]=]
+function serdeLayer.DictionaryToTable(dict: { [string]: any })
+	local keys = {}
+	for key, _ in pairs(dict) do
+		table.insert(keys, key)
+	end
+
+	table.sort(keys, function(a, b)
+		return a:lower() < b:lower()
+	end)
+	local toReturn = {}
+	for _, v in ipairs(keys) do
+		table.insert(toReturn, dict[v])
+	end
+	return toReturn
 end
 
 return serdeLayer

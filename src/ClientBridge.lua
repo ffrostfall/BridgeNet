@@ -31,6 +31,10 @@ ClientBridge.__index = ClientBridge
 ]=]
 function ClientBridge._start(config)
 	RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvent")
+
+	rateManager.SetSendRate(config.send_default_rate)
+	rateManager.SetReceiveRate(config.receive_default_rate)
+
 	local lastSend = 0
 	local lastReceive = 0
 	RunService.Heartbeat:Connect(function()
