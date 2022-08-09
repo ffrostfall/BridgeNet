@@ -116,7 +116,7 @@ function ServerBridge._start(config: config): nil
 			for _, v in ipairs(ReceiveQueue) do
 				local obj = BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]
 
-				for _, k in ipairs(obj._connections) do
+				for _, k in pairs(obj._connections) do
 					k(v.plr, table.unpack(v.args))
 				end
 			end

@@ -1,6 +1,12 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
+# 0.3.3-alpha
+- Hotfix for .CreateIdentifier()
+
+# 0.3.2-alpha
+- Connections now use pairs instead of ipairs
+
 # 0.3.1-alpha
 - Better error handling / messages
 - Removed unused function in ServerBridge/ClientBridge.

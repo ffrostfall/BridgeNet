@@ -90,7 +90,7 @@ end
 ]=]
 function serdeLayer.CreateIdentifier(id: string): string
 	assert(RunService:IsServer(), "You cannot create identifiers on the client.")
-	assert(type(id) ~= "string", "ID must be a string")
+	assert(type(id) == "string", "ID must be a string")
 
 	if sendDict[id] then
 		return sendDict[id]
@@ -126,7 +126,7 @@ end
 ]=]
 function serdeLayer.DestroyIdentifier(id: string): nil
 	assert(RunService:IsServer(), "You cannot destroy identifiers on the client.")
-	assert(type(id) ~= "string", "ID must be a string")
+	assert(type(id) == "string", "ID must be a string")
 
 	receiveDict[sendDict[id]] = nil
 	sendDict[id] = nil
@@ -188,7 +188,7 @@ end
 		print(BridgeNet.DictionaryToTable({ alpha = 999, bravo = 1000, charlie = 1001, delta = 1002 })) -- prints {999,1000,1001,1002}
 	```
 	
-	@param dictionary {[string]: any}
+	@param dict {[string]: any}
 	@return string
 ]=]
 function serdeLayer.DictionaryToTable(dict: { [string]: any })

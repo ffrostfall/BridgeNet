@@ -64,7 +64,7 @@ function ClientBridge._start(config)
 					if BridgeObjects[remoteName] == nil then
 						error("[BridgeNet] Client received non-existant Bridge. Naming mismatch?")
 					end
-					for _, k in ipairs(BridgeObjects[remoteName]._connections) do
+					for _, k in pairs(BridgeObjects[remoteName]._connections) do
 						k(table.unpack(v.args))
 					end
 				end)
@@ -139,6 +139,7 @@ end
 	```
 	
 	@param func function
+	@return nil
 ]=]
 function ClientBridge:Connect(func: (...any) -> nil)
 	assert(type(func) == "function", "[BridgeNet] Attempt to connect non-function to a Bridge")
@@ -150,6 +151,32 @@ function ClientBridge:Connect(func: (...any) -> nil)
 	}
 end
 
+--[[
+	Creates a connection, when fired it will disconnect.
+	
+	```lua
+	local Bridge = ClientBridge.new("ConstantlyFiringText")
+	
+	Bridge:Connect(function(text)
+		print(text) -- Fires multiple times
+	end)
+	
+	Bridge:Once(function(text)
+		print(text) -- Fires once
+	end)
+	```
+	
+	@param func function
+	@return nil
+function ClientBridge:Once(func: (...any) -> nil)
+	local connection
+	connection = self:Connect(function(...)
+		connection:Disconnect()
+		func(...)
+	end)
+end
+]]
+
 --[=[
 	Destroys the ClientBridge object. Doesn't destroy the RemoteEvent, or destroy the identifier. It doesn't send anything to the server. Just destroys the client sided object.
 	
@@ -160,6 +187,8 @@ end
 	
 	ClientBridge:Fire() -- Errors
 	```
+	
+	@return nil
 ]=]
 function ClientBridge:Destroy()
 	BridgeObjects[self._name] = nil
