@@ -1,6 +1,15 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
+# 0.3.1-alpha
+- Better error handling / messages
+- Removed unused function in ServerBridge/ClientBridge.
+- Added .CreateUUID(), .PackUUID(), .UnpackUUID(). (ty Pyseph!)
+- Added .DictionaryToTable(), which converts a dictionary into an alphabetically-ordered table.
+- Switched .ChildAdded for the client's serdeLayer to be in serdeLayer._start()
+- Switched "Network" documentation to be "BridgeNet"- Network was a working title.
+- Removed one_remote_event from config.
+
 # 0.2.1-alpha
 - Better error handling and messages
 - Errors during send/receive will not repeat due to failure to clear queue

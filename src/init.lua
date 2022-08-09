@@ -10,23 +10,22 @@ local isServer = RunService:IsServer()
 export type config = {
 	send_default_rate: number,
 	receive_default_rate: number,
-	--one_remote_event: boolean, TODO This is W.I.P. Right now there's no support for it
 }
 
 --[=[
-	@class Network
+	@class BridgeNet
 	
 	The interface for the package.
 ]=]
 
 --[=[
 	@function CreateBridge
-	@within Network
+	@within BridgeNet
 	
 	Creates a ServerBridge or a ClientBridge depending on if it's the server or client calling.
 	
 	```lua
-	local Bridge = Network.CreateBridge("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	```
 	
 	@param remoteName string
@@ -35,12 +34,12 @@ export type config = {
 
 --[=[
 	@function FromBridge
-	@within Network
+	@within BridgeNet
 	
 	Fetches a ServerBridge or ClientBridge from the string provided.
 	
 	```lua
-	local Bridge = Network.FromBridge("Remote")
+	local Bridge = BridgeNet.FromBridge("Remote")
 	```
 	
 	@param remoteName string
@@ -50,6 +49,7 @@ return {
 	CreateIdentifier = serdeLayer.CreateIdentifier,
 	WhatIsThis = serdeLayer.WhatIsThis,
 	DestroyIdentifier = serdeLayer.DestroyIdentifier,
+
 	SetSendRate = rateManager.SetSendRate,
 	GetSendRate = rateManager.GetSendRate,
 	SetReceiveRate = rateManager.SetReceiveRate,
@@ -70,6 +70,20 @@ return {
 		end
 	end,
 	Start = function(config: config)
+		local serverOrClientText = if isServer then "[SERVER]" else "[CLIENT]"
+		if config["default_receive_rate"] then
+			error(("[%s] Did you mean receive_default_rate?"):format(serverOrClientText))
+		end
+		if config["default_send_rate"] then
+			error(("[%s] Did you mean send_default_rate?"):format(serverOrClientText))
+		end
+		assert(
+			config["receive_default_rate"],
+			("[%s] receive_default_rate is nil in config"):format(serverOrClientText)
+		)
+		assert(config["send_default_rate"], ("[%s] send_default_rate is nil in config"):format(serverOrClientText))
+
+		serdeLayer._start()
 		if isServer then
 			return ServerBridge._start(config)
 		else
