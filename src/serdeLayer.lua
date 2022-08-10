@@ -33,7 +33,7 @@ end
 function serdeLayer._start()
 	if RunService:IsClient() then
 		AutoSerde = ReplicatedStorage:WaitForChild("AutoSerde")
-		for _, v in pairs(AutoSerde:GetChildren()) do
+		for _, v in ipairs(AutoSerde:GetChildren()) do
 			local strValue = v :: StringValue
 			sendDict[strValue.Name] = strValue.Value
 			receiveDict[strValue.Value] = strValue.Name

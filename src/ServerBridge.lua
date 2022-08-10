@@ -234,7 +234,7 @@ end
 ]=]
 function ServerBridge:FireToAllExcept(blacklistedPlrs: Player | { Player }, ...: any): { Player }
 	local toSend = {}
-	for _, v: Player in pairs(game:GetService("Players"):GetPlayers()) do
+	for _, v: Player in ipairs(game:GetService("Players"):GetPlayers()) do
 		if typeof(blacklistedPlrs) == "table" then
 			if table.find(blacklistedPlrs, v) then
 				continue
@@ -288,7 +288,7 @@ function ServerBridge:FireAllInRangeExcept(
 	...: any
 )
 	local toSend = {}
-	for _, v: Player in pairs(game:GetService("Players"):GetPlayers()) do
+	for _, v: Player in ipairs(game:GetService("Players"):GetPlayers()) do
 		if v:DistanceFromCharacter(point) <= range then
 			if typeof(blacklistedPlrs) == "table" then
 				if table.find(blacklistedPlrs, v) then
@@ -337,7 +337,7 @@ end
 ]=]
 function ServerBridge:FireAllInRange(point: Vector3, range: number, ...: any): { Player }
 	local toSend = {}
-	for _, v: Player in pairs(game:GetService("Players"):GetPlayers()) do
+	for _, v: Player in ipairs(game:GetService("Players"):GetPlayers()) do
 		if v:DistanceFromCharacter(point) <= range then
 			table.insert(toSend, v)
 		end
