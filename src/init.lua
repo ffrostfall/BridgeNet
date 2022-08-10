@@ -45,6 +45,23 @@ export type config = {
 	@param remoteName string
 	@return ServerBridge | ClientBridge | nil
 ]=]
+
+--[=[
+	@function WaitForBridge
+	@within BridgeNet	
+
+	Waits for a BridgeObject to be created, then resumes the thread.
+	This does NOT replicate. If the server creates a BridgeObject, it will NOT replicate to the client.
+	This will wait until a BridgeObject is created for the client/server respectively.
+	
+	```lua
+	print("client is waiting for the bridge to be created on the client..")
+	local Bridge = BridgeNet.WaitForBridge("Remote")
+	print("client is done waiting! was created in another script.")
+	```
+	
+	@return BridgeObject
+]=]
 return {
 	CreateIdentifier = serdeLayer.CreateIdentifier,
 	WhatIsThis = serdeLayer.WhatIsThis,
@@ -61,6 +78,13 @@ return {
 
 	DictionaryToTable = serdeLayer.DictionaryToTable,
 
+	WaitForBridge = function(str)
+		if isServer then
+			return ServerBridge.waitForBridge(str)
+		else
+			return ClientBridge.waitForBridge(str)
+		end
+	end,
 	FromBridge = function(str)
 		if isServer then
 			return ServerBridge.from(str)
