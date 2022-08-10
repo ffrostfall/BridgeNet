@@ -1,6 +1,6 @@
 [package]
 name = "ffrostflame/bridgenet"
-version = "0.3.3"
+version = "0.4.3"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 description = "A feature-packed networking library oriented towards optimization and ease of usage."
