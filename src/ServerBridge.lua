@@ -14,12 +14,16 @@ type config = {
 	--one_remote_event: boolean,
 }
 
+type logEntry = {
+	Remote: Player,
+}
+
 local SendQueue: { queueSendPacket } = {}
 local ReceiveQueue: { queueReceivePacket } = {}
 
 local BridgeObjects = {}
 
-local lastClear: number = 0
+local logs = {}
 
 local lastSend: number = 0
 local lastReceive: number = 0
@@ -115,9 +119,18 @@ function ServerBridge._start(config: config): nil
 
 			for _, v in ipairs(ReceiveQueue) do
 				local obj = BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]
+				if obj == nil then -- Don't warn here because that's a vulnerability. We don't want exploiters
+					-- lagging out the server over time with a pcall that warns every frame.
+					continue
+				end
 
 				for _, k in pairs(obj._connections) do
-					k(v.plr, table.unpack(v.args))
+					task.spawn(
+						function() -- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
+							-- also for error protection
+							k(v.plr, table.unpack(v.args))
+						end
+					)
 				end
 			end
 			ReceiveQueue = {}
@@ -145,6 +158,12 @@ end
 
 function ServerBridge.new(remoteName: string)
 	assert(type(remoteName) == "string", "[BridgeNet] Remote name must be a string")
+
+	local found = ServerBridge.from(remoteName)
+	if found ~= nil then
+		return found
+	end
+
 	local self = setmetatable({}, ServerBridge)
 
 	self._name = remoteName
@@ -172,10 +191,29 @@ function ServerBridge.from(remoteName: string)
 end
 
 --[=[
+	Waits for a BridgeObject to be created, then resumes the thread.
+	This does NOT replicate. If the server creates a BridgeObject, it will NOT replicate to the client.
+	This will wait until a BridgeObject is created for the client/server respectively.
+	
+	```lua
+	local Bridge = BridgeNet.WaitForBridge("Remote")
+	Bridge:FireTo(game.Players.Someone, "Hello", "World!")
+	```
+	
+	@return BridgeObject
+]=]
+function ServerBridge.WaitForBridge(remoteName: string)
+	repeat
+		task.wait()
+	until BridgeObjects[remoteName]
+	return BridgeObjects[remoteName]
+end
+
+--[=[
 	Sends data to a specific player.
 	
 	```lua
-	local Bridge = Network.CreateBridge("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	Bridge:FireTo(game.Players.Someone, "Hello", "World!")
 	```
 	
@@ -197,7 +235,7 @@ end
 	Sends data to every player except for one.
 	
 	```lua
-	local Bridge = Network.CreateBridge("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	Bridge:FireToAllExcept(game.Players.Someone, "Hello", "World!")
 	Bridge:FireToAllExcept({game.Players.A, game.Players.B}, "Not to A or B, but to C.")
 	```
@@ -235,7 +273,7 @@ end
 	Sends data to every single player within the range except certain blacklisted players. Returns the players affected, for usage later.
 	
 	```lua
-	local Bridge = Network.CreateBridge("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	local PlayersSent = Bridge:FireToAllInRangeExcept(
 		game.Players.Someone,
 		Vector3.new(50,50,50),
@@ -291,7 +329,7 @@ end
 	Sends data to every single player within the range. Returns the players affected, for usage later.
 	
 	```lua
-	local Bridge = Network.CreateBridge("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	local PlayersSent = Bridge:FireAllInRange(
 		Vector3.new(50,50,50),
 		10,
@@ -331,7 +369,7 @@ end
 	Sends data to every single player, with no exceptions.
 	
 	```lua
-	local Bridge = Network.CreateBridge("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	Bridge:FireAll("Hello, world!")
 	```
 	
@@ -353,7 +391,7 @@ end
 	Sends data to multiple players.
 	
 	```lua
-	local Bridge = Network.CreateBridge("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	Bridge:FireToMultiple({game.Players.A, game.Players.B}, "Hi!", "Hello.")
 	```
 	
@@ -377,7 +415,7 @@ end
 	It's possible to override the rate limit with the rate limit handler.
 	
 	```lua
-	local Bridge = Network.CreateBridge("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	Bridge:Ratelimit(20, function(sender, number)
 		if sender:GetRankInGroup(1234567) >= 60 then
 			return true -- Let them through, they're an admin.
@@ -413,7 +451,7 @@ end]]
 	Keep in mind, even if the middleware says not to run the connections, it will still affect rate limits.
 	
 	```lua
-	local Bridge = Network.CreateBridge("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	Bridge:SetMiddleware(function(connectionCallback, playerCalling, ...)
 		if playerCalling:GetRankInGroup(1234567) >= 60 then
 			connectionCallback(...)
@@ -434,7 +472,7 @@ end]]
 	Creates a connection.
 	
 	```lua
-	local Bridge = Network.CreateBridge("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	Bridge:Connect(function(plr, data)
 		print(plr .. " has sent " .. data)
 	end)
@@ -456,7 +494,7 @@ end
 	Destroys the identifier, and deletes the object reference.
 	
 	```lua
-	local Bridge = Network.CreateBridge("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	Bridge:Destroy()
 	
 	Bridge:FireTo(game.Players.A) -- Errors, the object is deleted.

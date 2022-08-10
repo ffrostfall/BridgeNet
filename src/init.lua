@@ -55,6 +55,12 @@ return {
 	SetReceiveRate = rateManager.SetReceiveRate,
 	GetReceiveRate = rateManager.GetReceiveRate,
 
+	CreateUUID = serdeLayer.CreateUUID,
+	PackUUID = serdeLayer.PackUUID,
+	UnpackUUID = serdeLayer.UnpackUUID,
+
+	DictionaryToTable = serdeLayer.DictionaryToTable,
+
 	FromBridge = function(str)
 		if isServer then
 			return ServerBridge.from(str)

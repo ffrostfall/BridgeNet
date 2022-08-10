@@ -1,6 +1,13 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
+# 0.4.3-alpha
+- Connections now spawn a thread, making them yield-safe and error-proof.
+- Added .WaitForBridge()
+- Added Roact's Symbol class- not used for now, will be used for .Start configuration in the future.
+- .CreateBridge() now has the same functionality of .FromBridge()
+- Server now checks for the BridgeObject to exist before trying to run connections. If it doesn't exist, nothing happens.
+
 # 0.3.3-alpha
 - Hotfix for .CreateIdentifier()
 

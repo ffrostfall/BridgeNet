@@ -59,17 +59,14 @@ function ClientBridge._start(config)
 
 		if (os.clock() - lastReceive) > rateManager.GetReceiveRate() then
 			for _, v in ipairs(ReceiveQueue) do
-				local _, err = pcall(function()
-					local remoteName = serdeLayer.WhatIsThis(v.remote, "id")
-					if BridgeObjects[remoteName] == nil then
-						error("[BridgeNet] Client received non-existant Bridge. Naming mismatch?")
-					end
-					for _, k in pairs(BridgeObjects[remoteName]._connections) do
+				local remoteName = serdeLayer.WhatIsThis(v.remote, "id")
+				if BridgeObjects[remoteName] == nil then
+					error("[BridgeNet] Client received non-existant Bridge. Naming mismatch?")
+				end
+				for _, k in pairs(BridgeObjects[remoteName]._connections) do
+					task.spawn(function()
 						k(table.unpack(v.args))
-					end
-				end)
-				if err then
-					warn(err)
+					end)
 				end
 			end
 			ReceiveQueue = {}
@@ -93,6 +90,12 @@ end
 
 function ClientBridge.new(remoteName: string)
 	assert(type(remoteName) == "string", "[BridgeNet] Remote name must be a string")
+
+	local found = ClientBridge.from(remoteName)
+	if found ~= nil then
+		return found
+	end
+
 	local self = setmetatable({}, ClientBridge)
 
 	self._name = remoteName
