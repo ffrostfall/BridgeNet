@@ -59,16 +59,16 @@ function ServerBridge._start(config: config): nil
 		local sendRate = rateManager.GetSendRate()
 		local receiveRate = rateManager.GetReceiveRate()
 
-		--[[if (os.clock() - lastClear) > 60 then
-			lastClear = os.clock()
+		--[[if (time() - lastClear) > 60 then
+			lastClear = time()
 
 			for _, v in ipairs(BridgeObjects) do
 				v._rateInThisMinute = 0
 			end
 		end]]
 
-		if (os.clock() - lastSend) >= sendRate then
-			lastSend = os.clock()
+		if (time() - lastSend) >= sendRate then
+			lastSend = time()
 
 			local toSendAll = {}
 			local toSendPlayers = {}
@@ -114,8 +114,8 @@ function ServerBridge._start(config: config): nil
 			SendQueue = {}
 		end
 
-		if (os.clock() - lastReceive) >= receiveRate then
-			lastReceive = os.clock()
+		if (time() - lastReceive) >= receiveRate then
+			lastReceive = time()
 
 			for _, v in ipairs(ReceiveQueue) do
 				local obj = BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]

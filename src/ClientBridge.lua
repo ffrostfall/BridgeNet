@@ -40,7 +40,7 @@ function ClientBridge._start(config)
 	RunService.Heartbeat:Connect(function()
 		debug.profilebegin("ClientBridge")
 
-		if (os.clock() - lastSend) > rateManager.GetSendRate() then
+		if (time() - lastSend) > rateManager.GetSendRate() then
 			local toSend = {}
 			for _, v in ipairs(SendQueue) do
 				local tbl = {}
@@ -57,7 +57,7 @@ function ClientBridge._start(config)
 			SendQueue = {}
 		end
 
-		if (os.clock() - lastReceive) > rateManager.GetReceiveRate() then
+		if (time() - lastReceive) > rateManager.GetReceiveRate() then
 			for _, v in ipairs(ReceiveQueue) do
 				local remoteName = serdeLayer.WhatIsThis(v.remote, "id")
 				if BridgeObjects[remoteName] == nil then
