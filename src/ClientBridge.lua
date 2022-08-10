@@ -112,6 +112,13 @@ function ClientBridge.from(remoteName: string)
 	return BridgeObjects[remoteName]
 end
 
+function ClientBridge.waitForBridge(remoteName: string)
+	repeat
+		task.wait()
+	until BridgeObjects[remoteName]
+	return BridgeObjects[remoteName]
+end
+
 --[=[
 	The equivelant of :FireServer().
 	

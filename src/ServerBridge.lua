@@ -190,19 +190,7 @@ function ServerBridge.from(remoteName: string)
 	return BridgeObjects[remoteName]
 end
 
---[=[
-	Waits for a BridgeObject to be created, then resumes the thread.
-	This does NOT replicate. If the server creates a BridgeObject, it will NOT replicate to the client.
-	This will wait until a BridgeObject is created for the client/server respectively.
-	
-	```lua
-	local Bridge = BridgeNet.WaitForBridge("Remote")
-	Bridge:FireTo(game.Players.Someone, "Hello", "World!")
-	```
-	
-	@return BridgeObject
-]=]
-function ServerBridge.WaitForBridge(remoteName: string)
+function ServerBridge.waitForBridge(remoteName: string)
 	repeat
 		task.wait()
 	until BridgeObjects[remoteName]
