@@ -4,7 +4,6 @@ local serdeLayer = require(script.serdeLayer)
 local ServerBridge = require(script.ServerBridge)
 local ClientBridge = require(script.ClientBridge)
 local rateManager = require(script.rateManager)
-local Symbol = require(script.Symbol)
 
 local isServer = RunService:IsServer()
 
@@ -43,6 +42,28 @@ local isServer = RunService:IsServer()
 	```
 	
 	@return BridgeObject
+]=]
+
+--[=[
+	@function Start
+	@within BridgeNet
+	
+	```lua
+		BridgeNet.Start({ -- server
+			[BridgeNet.DefaultReceive] = 60,
+			[BridgeNet.DefaultSend] = 60,
+			[SendLogFunction] = function(remote, plrs, ...) -- UNSTABLE, DON'T USE IN PRODUCTION.
+				local args = table.pack(...)
+				print(remote, plrs, args)
+			end,
+			[ReceiveLogFunction] = function(remote, plr, ...)
+				print(remote, plr, args)
+			end,
+		})
+	```
+	
+	@param options {}
+	@return nil
 ]=]
 
 local DefaultReceive = require(script.ConfigSymbols.DefaultReceive)

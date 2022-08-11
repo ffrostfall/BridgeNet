@@ -4,10 +4,13 @@ Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 # 1.4.3-alpha
 - Removed .FromBridge, use .WaitForBridge or .CreateBridge (createbridge returns the existing bridge object if it exists)
 - Configuration object now uses symbols instead of regular strings
-- Added global custom logging support
+- Added global custom logging support. UNSTABLE, DONT USE IN PRODUCTION
 - Changed some loops to use ipairs instead of pairs
 - Used table.clear instead of tbl = {} for better efficiency
 - Fixed Disconnect
+- Optimizations (thank you @Baileyeatspizza)
+- Fixed ClientBridge breaking if the client's bridge was created before the server created the bridge (thank you evanchan0819)
+- Fixed client-to-server communication only sending the first argument
 
 # 0.4.3-alpha
 - Connections now spawn a thread, making them yield-safe and error-proof.
