@@ -113,10 +113,11 @@ function ClientBridge.new(remoteName: string)
 	self._id = serdeLayer.WhatIsThis(self._name, "compressed")
 	if self._id == nil then
 		task.spawn(function()
+			local timer = 0
 			repeat
-				wait()
+				timer += task.wait()
 				self._id = serdeLayer.WhatIsThis(self._name, "compressed")
-			until self._id ~= nil
+			until self._id ~= nil or timer >= 10
 		end)
 	end
 
