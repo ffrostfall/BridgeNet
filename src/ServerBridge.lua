@@ -57,16 +57,16 @@ function ServerBridge._start(config: config): nil
 		local sendRate = rateManager.GetSendRate()
 		local receiveRate = rateManager.GetReceiveRate()
 
-		--[[if (os.clock() - lastClear) > 60 then
-			lastClear = os.clock()
+		--[[if (time() - lastClear) > 60 then
+			lastClear = time()
 
 			for _, v in ipairs(BridgeObjects) do
 				v._rateInThisMinute = 0
 			end
 		end]]
 
-		if (os.clock() - lastSend) >= sendRate then
-			lastSend = os.clock()
+		if (time() - lastSend) >= sendRate then
+			lastSend = time()
 
 			local toSendAll = {}
 			local toSendPlayers = {}
@@ -112,8 +112,8 @@ function ServerBridge._start(config: config): nil
 			table.clear(SendQueue)
 		end
 
-		if (os.clock() - lastReceive) >= receiveRate then
-			lastReceive = os.clock()
+		if (time() - lastReceive) >= receiveRate then
+			lastReceive = time()
 
 			for _, v in ipairs(ReceiveQueue) do
 				local obj = BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]
@@ -238,7 +238,7 @@ end
 ]=]
 function ServerBridge:FireToAllExcept(blacklistedPlrs: Player | { Player }, ...: any): { Player }
 	local toSend = {}
-	for _, v: Player in pairs(game:GetService("Players"):GetPlayers()) do
+	for _, v: Player in ipairs(game:GetService("Players"):GetPlayers()) do
 		if typeof(blacklistedPlrs) == "table" then
 			if table.find(blacklistedPlrs, v) then
 				continue
@@ -292,7 +292,7 @@ function ServerBridge:FireAllInRangeExcept(
 	...: any
 )
 	local toSend = {}
-	for _, v: Player in pairs(game:GetService("Players"):GetPlayers()) do
+	for _, v: Player in ipairs(game:GetService("Players"):GetPlayers()) do
 		if v:DistanceFromCharacter(point) <= range then
 			if typeof(blacklistedPlrs) == "table" then
 				if table.find(blacklistedPlrs, v) then
@@ -341,7 +341,7 @@ end
 ]=]
 function ServerBridge:FireAllInRange(point: Vector3, range: number, ...: any): { Player }
 	local toSend = {}
-	for _, v: Player in pairs(game:GetService("Players"):GetPlayers()) do
+	for _, v: Player in ipairs(game:GetService("Players"):GetPlayers()) do
 		if v:DistanceFromCharacter(point) <= range then
 			table.insert(toSend, v)
 		end

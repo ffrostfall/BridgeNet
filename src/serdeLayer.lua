@@ -19,21 +19,21 @@ local AutoSerde: Folder = nil
 type toSend = string
 
 local function fromHex(toConvert: string): string
-	return (toConvert:gsub("..", function(cc)
+	return string.gsub(toConvert, "..", function(cc)
 		return string.char(tonumber(cc, 16))
-	end))
+	end)
 end
 
 local function toHex(toConvert: string): string
-	return (toConvert:gsub(".", function(c)
+	return string.gsub(toConvert, ".", function(c)
 		return string.format("%02X", string.byte(c))
-	end))
+	end)
 end
 
 function serdeLayer._start()
 	if RunService:IsClient() then
 		AutoSerde = ReplicatedStorage:WaitForChild("AutoSerde")
-		for _, v in pairs(AutoSerde:GetChildren()) do
+		for _, v in ipairs(AutoSerde:GetChildren()) do
 			local strValue = v :: StringValue
 			sendDict[strValue.Name] = strValue.Value
 			receiveDict[strValue.Value] = strValue.Name
@@ -147,7 +147,7 @@ end
 	@return string
 ]=]
 function serdeLayer.CreateUUID()
-	return HttpService:GenerateGUID(false):gsub("-", "")
+	return string.gsub(HttpService:GenerateGUID(false), "-", "")
 end
 
 --[=[
@@ -198,7 +198,7 @@ function serdeLayer.DictionaryToTable(dict: { [string]: any })
 	end
 
 	table.sort(keys, function(a, b)
-		return a:lower() < b:lower()
+		return string.lower(a) < string.lower(b)
 	end)
 	local toReturn = {}
 	for _, v in ipairs(keys) do
