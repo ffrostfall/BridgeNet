@@ -71,6 +71,10 @@ function ServerBridge._start(config: config): nil
 			local toSendAll = {}
 			local toSendPlayers = {}
 			for _, v in ipairs(SendQueue) do
+				if activeConfig.receive_function ~= nil then
+					activeConfig.receive_function(serdeLayer.WhatIsThis(v.remote, "id"), v.plrs, table.unpack(v.args))
+				end
+
 				if v.plrs == "all" then
 					local tbl = {}
 					table.insert(tbl, v.remote)
@@ -122,17 +126,15 @@ function ServerBridge._start(config: config): nil
 					continue
 				end
 
-				local args = table.unpack(v.args)
-
-				if activeConfig.logging_function ~= nil then
-					activeConfig.logging_function(v.plr, args)
+				if activeConfig.receive_logging ~= nil then
+					activeConfig.receive_logging(v.plr, table.unpack(v.args))
 				end
 
 				for _, k in pairs(obj._connections) do
 					task.spawn(
 						function() -- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
 							-- also for error protection
-							k(v.plr, args)
+							k(v.plr, table.unpack(v.args))
 						end
 					)
 				end

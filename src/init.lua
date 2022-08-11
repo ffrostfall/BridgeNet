@@ -45,11 +45,11 @@ local isServer = RunService:IsServer()
 	@return BridgeObject
 ]=]
 
-local DefaultReceive = Symbol.named("DefaultReceive")
-local DefaultSend = Symbol.named("DefaultSend")
-local PrintRemotes = Symbol.named("PrintRemotes")
-local SendLogFunction = Symbol.named("SendLogFunction")
-local ReceiveLogFunction = Symbol.named("ReceiveLogFunction")
+local DefaultReceive = require(script.ConfigSymbols.DefaultReceive)
+local DefaultSend = require(script.ConfigSymbols.DefaultSend)
+local PrintRemotes = require(script.ConfigSymbols.PrintRemotes)
+local SendLogFunction = require(script.ConfigSymbols.SendLogsFunction)
+local ReceiveLogFunction = require(script.ConfigSymbols.ReceiveLogsFunction)
 
 return {
 	CreateIdentifier = serdeLayer.CreateIdentifier,

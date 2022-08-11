@@ -53,6 +53,10 @@ function ClientBridge._start(config)
 					table.insert(tbl, k)
 				end
 
+				if activeConfig.receive_function ~= nil then
+					activeConfig.receive_function(serdeLayer.WhatIsThis(v.remote, "id"), table.unpack(v.args))
+				end
+
 				table.insert(toSend, tbl)
 			end
 			if #toSend ~= 0 then
@@ -70,8 +74,8 @@ function ClientBridge._start(config)
 				end
 				for _, k in pairs(BridgeObjects[remoteName]._connections) do
 					task.spawn(function()
-						if activeConfig.logging_function ~= nil then
-							activeConfig.logging_function(remoteName, v.args)
+						if activeConfig.receive_function ~= nil then
+							activeConfig.receive_function(remoteName, table.unpack(v.args))
 						end
 
 						k(table.unpack(v.args))
@@ -89,6 +93,7 @@ function ClientBridge._start(config)
 			local params = v
 			local remote = params[1]
 			table.remove(params, 1)
+			print(params)
 			table.insert(ReceiveQueue, {
 				remote = remote,
 				args = params,
