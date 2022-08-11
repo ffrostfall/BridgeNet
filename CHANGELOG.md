@@ -1,6 +1,14 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
+# 1.4.3-alpha
+- Removed .FromBridge, use .WaitForBridge or .CreateBridge (createbridge returns the existing bridge object if it exists)
+- Configuration object now uses symbols instead of regular strings
+- Added global custom logging support
+- Changed some loops to use ipairs instead of pairs
+- Used table.clear instead of tbl = {} for better efficiency
+- Fixed Disconnect
+
 # 0.4.3-alpha
 - Connections now spawn a thread, making them yield-safe and error-proof.
 - Added .WaitForBridge()

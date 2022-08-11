@@ -15,6 +15,8 @@ local ReceiveQueue: { receivePacketQueue } = {}
 
 local BridgeObjects = {}
 
+local activeConfig
+
 --[=[
 	@class ClientBridge
 	
@@ -30,6 +32,8 @@ ClientBridge.__index = ClientBridge
 	@ignore
 ]=]
 function ClientBridge._start(config)
+	activeConfig = config
+
 	RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvent")
 
 	rateManager.SetSendRate(config.send_default_rate)
@@ -45,7 +49,7 @@ function ClientBridge._start(config)
 			for _, v in ipairs(SendQueue) do
 				local tbl = {}
 				table.insert(tbl, v.remote)
-				for _, k in pairs(v.args) do
+				for _, k in ipairs(v.args) do
 					table.insert(tbl, k)
 				end
 
@@ -65,6 +69,10 @@ function ClientBridge._start(config)
 				end
 				for _, k in pairs(BridgeObjects[remoteName]._connections) do
 					task.spawn(function()
+						if activeConfig.logging_function ~= nil then
+							activeConfig.logging_function(remoteName, v.args)
+						end
+
 						k(table.unpack(v.args))
 					end)
 				end

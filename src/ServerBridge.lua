@@ -23,8 +23,6 @@ local ReceiveQueue: { queueReceivePacket } = {}
 
 local BridgeObjects = {}
 
-local logs = {}
-
 local lastSend: number = 0
 local lastReceive: number = 0
 
@@ -76,7 +74,7 @@ function ServerBridge._start(config: config): nil
 				if v.plrs == "all" then
 					local tbl = {}
 					table.insert(tbl, v.remote)
-					for _, k in pairs(v.args) do
+					for _, k in ipairs(v.args) do
 						table.insert(tbl, k)
 					end
 					table.insert(toSendAll, tbl)
@@ -87,7 +85,7 @@ function ServerBridge._start(config: config): nil
 						end
 						local tbl = {}
 						table.insert(tbl, v.remote)
-						for _, m in pairs(v.args) do
+						for _, m in ipairs(v.args) do
 							table.insert(tbl, m)
 						end
 						table.insert(toSendPlayers[l], tbl)
@@ -98,7 +96,7 @@ function ServerBridge._start(config: config): nil
 					end
 					local tbl = {}
 					table.insert(tbl, v.remote)
-					for _, n in pairs(v.args) do
+					for _, n in ipairs(v.args) do
 						table.insert(tbl, n)
 					end
 					table.insert(toSendPlayers[v.plrs], tbl)
@@ -111,7 +109,7 @@ function ServerBridge._start(config: config): nil
 			for l, k in pairs(toSendPlayers) do
 				RemoteEvent:FireClient(l, k)
 			end
-			SendQueue = {}
+			table.clear(SendQueue)
 		end
 
 		if (os.clock() - lastReceive) >= receiveRate then
@@ -124,16 +122,22 @@ function ServerBridge._start(config: config): nil
 					continue
 				end
 
+				local args = table.unpack(v.args)
+
+				if activeConfig.logging_function ~= nil then
+					activeConfig.logging_function(v.plr, args)
+				end
+
 				for _, k in pairs(obj._connections) do
 					task.spawn(
 						function() -- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
 							-- also for error protection
-							k(v.plr, table.unpack(v.args))
+							k(v.plr, args)
 						end
 					)
 				end
 			end
-			ReceiveQueue = {}
+			table.clear(ReceiveQueue)
 		end
 
 		debug.profileend()

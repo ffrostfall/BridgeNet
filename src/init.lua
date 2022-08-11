@@ -4,13 +4,9 @@ local serdeLayer = require(script.serdeLayer)
 local ServerBridge = require(script.ServerBridge)
 local ClientBridge = require(script.ClientBridge)
 local rateManager = require(script.rateManager)
+local Symbol = require(script.Symbol)
 
 local isServer = RunService:IsServer()
-
-export type config = {
-	send_default_rate: number,
-	receive_default_rate: number,
-}
 
 --[=[
 	@class BridgeNet
@@ -33,20 +29,6 @@ export type config = {
 ]=]
 
 --[=[
-	@function FromBridge
-	@within BridgeNet
-	
-	Fetches a ServerBridge or ClientBridge from the string provided.
-	
-	```lua
-	local Bridge = BridgeNet.FromBridge("Remote")
-	```
-	
-	@param remoteName string
-	@return ServerBridge | ClientBridge | nil
-]=]
-
---[=[
 	@function WaitForBridge
 	@within BridgeNet	
 
@@ -62,6 +44,13 @@ export type config = {
 	
 	@return BridgeObject
 ]=]
+
+local DefaultReceive = Symbol.named("DefaultReceive")
+local DefaultSend = Symbol.named("DefaultSend")
+local PrintRemotes = Symbol.named("PrintRemotes")
+local SendLogFunction = Symbol.named("SendLogFunction")
+local ReceiveLogFunction = Symbol.named("ReceiveLogFunction")
+
 return {
 	CreateIdentifier = serdeLayer.CreateIdentifier,
 	WhatIsThis = serdeLayer.WhatIsThis,
@@ -78,18 +67,17 @@ return {
 
 	DictionaryToTable = serdeLayer.DictionaryToTable,
 
+	SendLogFunction = SendLogFunction,
+	ReceiveLogFunction = ReceiveLogFunction,
+
+	DefaultReceive = DefaultReceive,
+	DefaultSend = DefaultSend,
+
 	WaitForBridge = function(str)
 		if isServer then
 			return ServerBridge.waitForBridge(str)
 		else
 			return ClientBridge.waitForBridge(str)
-		end
-	end,
-	FromBridge = function(str)
-		if isServer then
-			return ServerBridge.from(str)
-		else
-			return ClientBridge.from(str)
 		end
 	end,
 	CreateBridge = function(str)
@@ -99,25 +87,28 @@ return {
 			return ClientBridge.new(str)
 		end
 	end,
-	Start = function(config: config)
-		local serverOrClientText = if isServer then "[SERVER]" else "[CLIENT]"
-		if config["default_receive_rate"] then
-			error(("[%s] Did you mean receive_default_rate?"):format(serverOrClientText))
+	Start = function(config: { [any]: number })
+		local prefix = if RunService:IsServer() then "SERVER" else "CLIENT"
+		if not config[DefaultReceive] then
+			warn(("[%s] DefaultReceive doesn't exist!"):format(prefix))
 		end
-		if config["default_send_rate"] then
-			error(("[%s] Did you mean send_default_rate?"):format(serverOrClientText))
+		if not config[DefaultSend] then
+			warn(("[%s] DefaultSend doesn't exist!"):format(prefix))
 		end
-		assert(
-			config["receive_default_rate"],
-			("[%s] receive_default_rate is nil in config"):format(serverOrClientText)
-		)
-		assert(config["send_default_rate"], ("[%s] send_default_rate is nil in config"):format(serverOrClientText))
+
+		local configToSend = {
+			send_default_rate = config[DefaultSend],
+			receive_default_rate = config[DefaultReceive],
+			print_remotes = config[PrintRemotes],
+			send_function = config[SendLogFunction],
+			receive_function = config[ReceiveLogFunction],
+		}
 
 		serdeLayer._start()
 		if isServer then
-			return ServerBridge._start(config)
+			return ServerBridge._start(configToSend)
 		else
-			return ClientBridge._start(config)
+			return ClientBridge._start(configToSend)
 		end
 	end,
 }
