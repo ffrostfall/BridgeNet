@@ -116,15 +116,6 @@ function ClientBridge.new(remoteName: string)
 	self._connections = {}
 
 	self._id = serdeLayer.WhatIsThis(self._name, "compressed")
-	if self._id == nil then
-		task.spawn(function()
-			local timer = 0
-			repeat
-				timer += task.wait()
-				self._id = serdeLayer.WhatIsThis(self._name, "compressed")
-			until self._id ~= nil or timer >= 10
-		end)
-	end
 
 	BridgeObjects[self._name] = self
 	return self
@@ -154,6 +145,9 @@ end
 	@param ... any
 ]=]
 function ClientBridge:Fire(...: any)
+	if self._id == nil then
+		self._id = serdeLayer.WhatIsThis(self._name, "compressed")
+	end
 	table.insert(SendQueue, {
 		remote = self._id,
 		args = { ... },
