@@ -65,7 +65,8 @@ function ClientBridge._start(config)
 			for _, v in ipairs(ReceiveQueue) do
 				local remoteName = serdeLayer.WhatIsThis(v.remote, "id")
 				if BridgeObjects[remoteName] == nil then
-					error("[BridgeNet] Client received non-existant Bridge. Naming mismatch?")
+					continue
+					--error("[BridgeNet] Client received non-existant Bridge. Naming mismatch?")
 				end
 				for _, k in pairs(BridgeObjects[remoteName]._connections) do
 					task.spawn(function()
@@ -110,6 +111,14 @@ function ClientBridge.new(remoteName: string)
 	self._connections = {}
 
 	self._id = serdeLayer.WhatIsThis(self._name, "compressed")
+	if self._id == nil then
+		task.spawn(function()
+			repeat
+				wait()
+				self._id = serdeLayer.WhatIsThis(self._name, "compressed")
+			until self._id ~= nil
+		end)
+	end
 
 	BridgeObjects[self._name] = self
 	return self
