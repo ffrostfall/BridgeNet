@@ -110,7 +110,7 @@ return {
 		end
 	end,
 	Start = function(config: { [any]: number })
-		local prefix = if RunService:IsServer() then "SERVER" else "CLIENT"
+		local prefix = if isServer then "SERVER" else "CLIENT"
 
 		if hasStarted then
 			error(string.format("BridgeNet has already been started on the %s", prefix))
