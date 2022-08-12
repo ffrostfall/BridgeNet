@@ -45,10 +45,11 @@ function ClientBridge._start(config)
 		debug.profilebegin("ClientBridge")
 
 		if (time() - lastSend) > rateManager.GetSendRate() then
-			local toSend = {}
+			local SendQueueLength = #SendQueue
+			local toSend = table.create(SendQueueLength)
 			for _, v in ipairs(SendQueue) do
-				local tbl = {}
-				table.insert(tbl, v.remote)
+				local tbl = table.create(#v.args + 1)
+				tbl[1] = v.remote
 				for _, k in ipairs(v.args) do
 					table.insert(tbl, k)
 				end
@@ -59,7 +60,7 @@ function ClientBridge._start(config)
 
 				table.insert(toSend, tbl)
 			end
-			if #toSend ~= 0 then
+			if SendQueueLength ~= 0 then
 				RemoteEvent:FireServer(toSend)
 			end
 			table.clear(SendQueue)
@@ -134,10 +135,13 @@ function ClientBridge.from(remoteName: string)
 end
 
 function ClientBridge.waitForBridge(remoteName: string)
-	repeat
+	while true do
+		local bridge = BridgeObjects[remoteName]
+		if bridge then
+			return bridge
+		end
 		task.wait()
-	until BridgeObjects[remoteName]
-	return BridgeObjects[remoteName]
+	end
 end
 
 --[=[
