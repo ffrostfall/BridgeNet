@@ -118,10 +118,10 @@ return {
 		hasStarted = true
 
 		if not config[DefaultReceive] then
-			warn(("[%s] DefaultReceive doesn't exist!"):format(prefix))
+			warn(string.format("[%s] DefaultReceive doesn't exist!", prefix))
 		end
 		if not config[DefaultSend] then
-			warn(("[%s] DefaultSend doesn't exist!"):format(prefix))
+			warn(string.format("[%s] DefaultSend doesn't exist!", prefix))
 		end
 
 		local configToSend = {
