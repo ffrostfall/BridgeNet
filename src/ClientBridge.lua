@@ -62,7 +62,7 @@ function ClientBridge._start(config)
 			if #toSend ~= 0 then
 				RemoteEvent:FireServer(toSend)
 			end
-			SendQueue = {}
+			table.clear(SendQueue)
 		end
 
 		if (time() - lastReceive) > rateManager.GetReceiveRate() then
@@ -81,7 +81,7 @@ function ClientBridge._start(config)
 					end
 				end
 			end
-			ReceiveQueue = {}
+			table.clear(ReceiveQueue)
 		end
 
 		debug.profileend()
