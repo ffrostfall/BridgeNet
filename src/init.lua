@@ -6,6 +6,7 @@ local ClientBridge = require(script.ClientBridge)
 local rateManager = require(script.rateManager)
 
 local isServer = RunService:IsServer()
+local hasStarted = false
 
 --[=[
 	@class BridgeNet
@@ -110,6 +111,12 @@ return {
 	end,
 	Start = function(config: { [any]: number })
 		local prefix = if RunService:IsServer() then "SERVER" else "CLIENT"
+
+		if hasStarted then
+			error(string.format("BridgeNet has already been started on the %s", prefix))
+		end
+		hasStarted = true
+
 		if not config[DefaultReceive] then
 			warn(("[%s] DefaultReceive doesn't exist!"):format(prefix))
 		end
