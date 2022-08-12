@@ -88,8 +88,7 @@ function ClientBridge._start(config)
 	end)
 
 	RemoteEvent.OnClientEvent:Connect(function(tbl)
-		for _, v in ipairs(tbl) do
-			local params = v
+		for _, params in ipairs(tbl) do
 			local remote = params[1]
 			table.remove(params, 1)
 			print(params)
