@@ -42,10 +42,10 @@ function ClientBridge._start(config)
 	local sendDelta = 0
 	local receiveDelta = 0
 	RunService.Heartbeat:Connect(function(delta)
+		debug.profilebegin("ClientBridge")
+
 		sendDelta += delta
 		receiveDelta += delta
-		
-		debug.profilebegin("ClientBridge")
 
 		if sendDelta > rateManager.GetSendRate() then
 			sendDelta = 0
