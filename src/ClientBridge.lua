@@ -52,11 +52,8 @@ function ClientBridge._start(config)
 			local SendQueueLength = #SendQueue
 			local toSend = table.create(SendQueueLength)
 			for _, v in ipairs(SendQueue) do
-				local tbl = table.create(#v.args + 1)
-				tbl[1] = v.remote
-				for _, k in ipairs(v.args) do
-					table.insert(tbl, k)
-				end
+				local tbl = table.clone(v.args)
+				table.insert(tbl, 1, v.remote)
 
 				if activeConfig.receive_function ~= nil then
 					activeConfig.receive_function(serdeLayer.WhatIsThis(v.remote, "id"), unpack(v.args))
