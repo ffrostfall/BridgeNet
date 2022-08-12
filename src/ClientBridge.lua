@@ -39,12 +39,16 @@ function ClientBridge._start(config)
 	rateManager.SetSendRate(config.send_default_rate)
 	rateManager.SetReceiveRate(config.receive_default_rate)
 
-	local lastSend = 0
-	local lastReceive = 0
-	RunService.Heartbeat:Connect(function()
+	local sendDelta = 0
+	local receiveDelta = 0
+	RunService.Heartbeat:Connect(function(delta)
+		sendDelta += delta
+		receiveDelta += delta
+		
 		debug.profilebegin("ClientBridge")
 
-		if (time() - lastSend) > rateManager.GetSendRate() then
+		if sendDelta > rateManager.GetSendRate() then
+			sendDelta = 0
 			local SendQueueLength = #SendQueue
 			local toSend = table.create(SendQueueLength)
 			for _, v in ipairs(SendQueue) do
@@ -66,7 +70,8 @@ function ClientBridge._start(config)
 			table.clear(SendQueue)
 		end
 
-		if (time() - lastReceive) > rateManager.GetReceiveRate() then
+		if receiveDelta > rateManager.GetReceiveRate() then
+			receiveDelta = 0
 			for _, v in ipairs(ReceiveQueue) do
 				local remoteName = serdeLayer.WhatIsThis(v.remote, "id")
 				if BridgeObjects[remoteName] == nil then
