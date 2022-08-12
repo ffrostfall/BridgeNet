@@ -154,6 +154,9 @@ end
 	@param ... any
 ]=]
 function ClientBridge:Fire(...: any)
+	if self._id == nil then
+		self._id = serdeLayer.WhatIsThis(self._name, "compressed")
+	end
 	table.insert(SendQueue, {
 		remote = self._id,
 		args = { ... },
