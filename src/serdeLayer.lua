@@ -25,9 +25,12 @@ local function fromHex(toConvert: string): string
 end
 
 local function toHex(toConvert: string): string
-	return string.gsub(toConvert, ".", function(c)
-		return string.format("%02X", string.byte(c))
-	end)
+	local toConvertLength = #toConvert
+	local concat = table.create(toConvertLength)
+	for i=1, toConvertLength do
+		concat[i] = string.format("%02X", string.byte(string.sub(toConvert, i, i)))
+	end
+	return table.concat(concat, "")
 end
 
 function serdeLayer._start()
