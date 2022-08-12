@@ -24,8 +24,8 @@ local ReceiveQueue: { queueReceivePacket } = {}
 
 local BridgeObjects = {}
 
-local lastSend: number = 0
-local lastReceive: number = 0
+local sendDelta: number = 0
+local receiveDelta: number = 0
 
 local activeConfig
 
@@ -53,7 +53,7 @@ function ServerBridge._start(config: config): nil
 	rateManager.SetSendRate(activeConfig.send_default_rate)
 	rateManager.SetReceiveRate(activeConfig.receive_default_rate)
 
-	RunService.Heartbeat:Connect(function()
+	RunService.Heartbeat:Connect(function(delta)
 		debug.profilebegin("ServerBridge")
 		local sendRate = rateManager.GetSendRate()
 		local receiveRate = rateManager.GetReceiveRate()
@@ -66,45 +66,41 @@ function ServerBridge._start(config: config): nil
 			end
 		end]]
 
-		if (time() - lastSend) >= sendRate then
-			lastSend = time()
+		sendDelta += delta
+		receiveDelta += delta
 
+		if sendDelta >= sendRate then
+			sendDelta = 0
 			local toSendAll = {}
 			local toSendPlayers = {}
 			for _, v in ipairs(SendQueue) do
 				if activeConfig.receive_function ~= nil then
-					activeConfig.receive_function(serdeLayer.WhatIsThis(v.remote, "id"), v.plrs, table.unpack(v.args))
+					activeConfig.receive_function(serdeLayer.WhatIsThis(v.remote, "id"), v.plrs, unpack(v.args))
 				end
-
+				
 				if v.plrs == "all" then
-					local tbl = {}
-					table.insert(tbl, v.remote)
-					for _, k in ipairs(v.args) do
-						table.insert(tbl, k)
-					end
+					local tbl = table.clone(v.args)
+					table.insert(tbl, 1, v.remote)
 					table.insert(toSendAll, tbl)
 				elseif typeof(v.plrs) == "table" then
 					for _, l in ipairs(v.plrs) do
+						local tbl = table.clone(v.args)
+						table.insert(tbl, 1, v.remote)
 						if toSendPlayers[l] == nil then
-							toSendPlayers[l] = {}
+							toSendPlayers[l] = {tbl}
+						else
+							table.insert(toSendPlayers[l], tbl)
 						end
-						local tbl = {}
-						table.insert(tbl, v.remote)
-						for _, m in ipairs(v.args) do
-							table.insert(tbl, m)
-						end
-						table.insert(toSendPlayers[l], tbl)
 					end
 				else
-					if toSendPlayers[v.plrs] == nil then
-						toSendPlayers[v.plrs] = {}
+					local toSend = toSendPlayers[v.plrs]
+					local tbl = table.clone(v.args)
+					table.insert(tbl, 1, v.remote)
+					if toSend then
+						table.insert(toSend, tbl)
+					else
+						toSendPlayers[v.plrs] = {tbl}
 					end
-					local tbl = {}
-					table.insert(tbl, v.remote)
-					for _, n in ipairs(v.args) do
-						table.insert(tbl, n)
-					end
-					table.insert(toSendPlayers[v.plrs], tbl)
 				end
 			end
 
@@ -117,9 +113,8 @@ function ServerBridge._start(config: config): nil
 			table.clear(SendQueue)
 		end
 
-		if (time() - lastReceive) >= receiveRate then
-			lastReceive = time()
-
+		if receiveDelta >= receiveRate then
+			receiveDelta = 0
 			for _, v in ipairs(ReceiveQueue) do
 				local obj = BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]
 				if obj == nil then
@@ -129,7 +124,7 @@ function ServerBridge._start(config: config): nil
 				end
 
 				if activeConfig.receive_logging ~= nil then
-					activeConfig.receive_logging(v.plr, table.unpack(v.args))
+					activeConfig.receive_logging(v.plr, unpack(v.args))
 				end
 
 				for callback, timesConnected in pairs(obj._connections) do
@@ -170,23 +165,23 @@ function ServerBridge.new(remoteName: string)
 		return found
 	end
 
-	local self = setmetatable({}, ServerBridge)
+	local self = setmetatable({
+		_name = remoteName,
 
-	self._name = remoteName
+		_connections = {},
+		_rateInThisMinute = {
+			num = 0,
+			min = 0,
+		},
+		_rateLimit = nil,
+		_rateHandler = nil,
 
-	self._connections = {}
-	self._rateInThisMinute = {
-		num = 0,
-		min = 0,
-	}
-	self._rateLimit = nil
-	self._rateHandler = nil
+		_id = serdeLayer.CreateIdentifier(remoteName),
 
-	self._id = serdeLayer.CreateIdentifier(remoteName)
-
-	self._middleware = function(connectCallback, playerCalling, ...)
-		connectCallback(playerCalling, ...)
-	end
+		_middleware = function(connectCallback, playerCalling, ...)
+			connectCallback(playerCalling, ...)
+		end
+	}, ServerBridge)
 
 	BridgeObjects[self._name] = self
 	return self
