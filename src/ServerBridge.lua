@@ -1,5 +1,6 @@
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
 local serdeLayer = require(script.Parent.serdeLayer)
 local rateManager = require(script.Parent.rateManager)
@@ -121,8 +122,9 @@ function ServerBridge._start(config: config): nil
 
 			for _, v in ipairs(ReceiveQueue) do
 				local obj = BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]
-				if obj == nil then -- Don't warn here because that's a vulnerability. We don't want exploiters
-					-- lagging out the server over time with a pcall that warns every frame.
+				if obj == nil then
+					--Don't warn here because that's a vulnerability. We don't want exploiters
+					--lagging out the server over time with a pcall that warns every frame.
 					continue
 				end
 
@@ -130,13 +132,12 @@ function ServerBridge._start(config: config): nil
 					activeConfig.receive_logging(v.plr, table.unpack(v.args))
 				end
 
-				for _, k in pairs(obj._connections) do
-					task.spawn(
-						function() -- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
-							-- also for error protection
-							k(v.plr, table.unpack(v.args))
-						end
-					)
+				for callback, timesConnected in pairs(obj._connections) do
+					-- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
+					-- also for error protection
+					for _ = 1, timesConnected do
+						task.spawn(callback, v.plr, unpack(v.args))
+					end
 				end
 			end
 			table.clear(ReceiveQueue)
@@ -197,10 +198,13 @@ function ServerBridge.from(remoteName: string)
 end
 
 function ServerBridge.waitForBridge(remoteName: string)
-	repeat
+	while true do
+		local bridge = BridgeObjects[remoteName]
+		if bridge then
+			return bridge
+		end
 		task.wait()
-	until BridgeObjects[remoteName]
-	return BridgeObjects[remoteName]
+	end
 end
 
 --[=[
@@ -208,7 +212,7 @@ end
 	
 	```lua
 	local Bridge = BridgeNet.CreateBridge("Remote")
-	Bridge:FireTo(game.Players.Someone, "Hello", "World!")
+	Bridge:FireTo(Players.Someone, "Hello", "World!")
 	```
 	
 	@param plr Player
@@ -230,8 +234,8 @@ end
 	
 	```lua
 	local Bridge = BridgeNet.CreateBridge("Remote")
-	Bridge:FireToAllExcept(game.Players.Someone, "Hello", "World!")
-	Bridge:FireToAllExcept({game.Players.A, game.Players.B}, "Not to A or B, but to C.")
+	Bridge:FireToAllExcept(Players.Someone, "Hello", "World!")
+	Bridge:FireToAllExcept({Players.A, Players.B}, "Not to A or B, but to C.")
 	```
 	
 	@param blacklistedPlrs Player | {Player}
@@ -240,7 +244,7 @@ end
 ]=]
 function ServerBridge:FireToAllExcept(blacklistedPlrs: Player | { Player }, ...: any): { Player }
 	local toSend = {}
-	for _, v: Player in ipairs(game:GetService("Players"):GetPlayers()) do
+	for _, v: Player in ipairs(Players:GetPlayers()) do
 		if typeof(blacklistedPlrs) == "table" then
 			if table.find(blacklistedPlrs, v) then
 				continue
@@ -269,8 +273,8 @@ end
 	```lua
 	local Bridge = BridgeNet.CreateBridge("Remote")
 	local PlayersSent = Bridge:FireToAllInRangeExcept(
-		game.Players.Someone,
-		Vector3.new(50,50,50),
+		Players.Someone,
+		Vector3.new(50, 50, 50),
 		10,
 		"Hello",
 		"World!"
@@ -294,7 +298,7 @@ function ServerBridge:FireAllInRangeExcept(
 	...: any
 )
 	local toSend = {}
-	for _, v: Player in ipairs(game:GetService("Players"):GetPlayers()) do
+	for _, v: Player in ipairs(Players:GetPlayers()) do
 		if v:DistanceFromCharacter(point) <= range then
 			if typeof(blacklistedPlrs) == "table" then
 				if table.find(blacklistedPlrs, v) then
@@ -325,7 +329,7 @@ end
 	```lua
 	local Bridge = BridgeNet.CreateBridge("Remote")
 	local PlayersSent = Bridge:FireAllInRange(
-		Vector3.new(50,50,50),
+		Vector3.new(50, 50, 50),
 		10,
 		"Hello",
 		"World!"
@@ -343,7 +347,7 @@ end
 ]=]
 function ServerBridge:FireAllInRange(point: Vector3, range: number, ...: any): { Player }
 	local toSend = {}
-	for _, v: Player in ipairs(game:GetService("Players"):GetPlayers()) do
+	for _, v: Player in ipairs(Players:GetPlayers()) do
 		if v:DistanceFromCharacter(point) <= range then
 			table.insert(toSend, v)
 		end
@@ -386,7 +390,7 @@ end
 	
 	```lua
 	local Bridge = BridgeNet.CreateBridge("Remote")
-	Bridge:FireToMultiple({game.Players.A, game.Players.B}, "Hi!", "Hello.")
+	Bridge:FireToMultiple({Players.A, Players.B}, "Hi!", "Hello.")
 	```
 	
 	@param plrs {Player}
@@ -475,13 +479,26 @@ end]]
 	@param func (plr: Player, ...any) -> nil
 	@return Connection
 ]=]
-function ServerBridge:Connect(func: (plr: Player, ...any) -> nil)
-	local index = table.insert(self._connections, func)
-	return {
+function ServerBridge:Connect(func: (...any) -> nil)
+	assert(type(func) == "function", "[BridgeNet] Attempt to connect non-function to a Bridge")
+	if self._connections[func] then
+		self._connections[func] += 1
+	else
+		self._connections[func] = 1
+	end
+
+	local connection
+	connection = {
 		Disconnect = function()
-			table.remove(self._connections, index)
+			if connection.Connected then
+				connection.Connected = false
+				self._connections[func] -= 1
+			end
 		end,
+		Connected = true
 	}
+
+	return connection
 end
 
 --[=[
@@ -491,7 +508,7 @@ end
 	local Bridge = BridgeNet.CreateBridge("Remote")
 	Bridge:Destroy()
 	
-	Bridge:FireTo(game.Players.A) -- Errors, the object is deleted.
+	Bridge:FireTo(Players.A) -- Errors, the object is deleted.
 	```
 	
 	@return nil
