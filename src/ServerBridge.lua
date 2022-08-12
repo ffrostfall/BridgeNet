@@ -147,8 +147,7 @@ function ServerBridge._start(config: config): nil
 	end)
 
 	RemoteEvent.OnServerEvent:Connect(function(plr, tbl)
-		for _, v in ipairs(tbl) do
-			local args = v
+		for _, args in ipairs(tbl) do
 			local remote = args[1]
 			table.remove(args, 1)
 			local toInsert = {
@@ -244,17 +243,16 @@ end
 ]=]
 function ServerBridge:FireToAllExcept(blacklistedPlrs: Player | { Player }, ...: any): { Player }
 	local toSend = {}
-	for _, v: Player in ipairs(Players:GetPlayers()) do
-		if typeof(blacklistedPlrs) == "table" then
-			if table.find(blacklistedPlrs, v) then
+	local blacklistedIsTable = typeof(blacklistedPlrs) == "table"
+	for _, player: Player in ipairs(Players:GetPlayers()) do
+		if blacklistedIsTable then
+			if table.find(blacklistedPlrs, player) then
 				continue
 			end
-		else
-			if blacklistedPlrs == v then
-				continue
-			end
+		elseif blacklistedPlrs == player then
+			continue
 		end
-		table.insert(toSend, v)
+		table.insert(toSend, player)
 	end
 
 	local toSendPacket: queueSendPacket = {
@@ -298,18 +296,17 @@ function ServerBridge:FireAllInRangeExcept(
 	...: any
 )
 	local toSend = {}
-	for _, v: Player in ipairs(Players:GetPlayers()) do
-		if v:DistanceFromCharacter(point) <= range then
-			if typeof(blacklistedPlrs) == "table" then
-				if table.find(blacklistedPlrs, v) then
+	local blacklistedIsTable = typeof(blacklistedPlrs) == "table"
+	for _, player: Player in ipairs(Players:GetPlayers()) do
+		if player:DistanceFromCharacter(point) <= range then
+			if blacklistedIsTable then
+				if table.find(blacklistedPlrs, player) then
 					continue
 				end
-			else
-				if blacklistedPlrs == v then
-					continue
-				end
+			elseif blacklistedPlrs == player then
+				continue
 			end
-			table.insert(toSend, v)
+			table.insert(toSend, player)
 		end
 	end
 
@@ -347,9 +344,9 @@ end
 ]=]
 function ServerBridge:FireAllInRange(point: Vector3, range: number, ...: any): { Player }
 	local toSend = {}
-	for _, v: Player in ipairs(Players:GetPlayers()) do
-		if v:DistanceFromCharacter(point) <= range then
-			table.insert(toSend, v)
+	for _, player: Player in ipairs(Players:GetPlayers()) do
+		if player:DistanceFromCharacter(point) <= range then
+			table.insert(toSend, player)
 		end
 	end
 
