@@ -133,7 +133,7 @@ function serdeLayer.DestroyIdentifier(id: string): nil
 
 	numOfSerials -= 1
 
-	AutoSerde:FindFirstChild(id):Destroy()
+	AutoSerde:FindFirstChild(id):Destroy() --FindFirstChild because properties exist
 	return nil
 end
 
@@ -197,8 +197,8 @@ function serdeLayer.DictionaryToTable(dict: { [string]: any })
 		return string.lower(a) < string.lower(b)
 	end)
 	local toReturn = table.create(#keys)
-	for _, v in ipairs(keys) do
-		table.insert(toReturn, dict[v])
+	for i, v in ipairs(keys) do
+		toReturn[i] = dict[v]
 	end
 	return toReturn
 end
