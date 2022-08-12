@@ -493,6 +493,9 @@ function ServerBridge:Connect(func: (...any) -> nil)
 			if connection.Connected then
 				connection.Connected = false
 				self._connections[func] -= 1
+				if 1 > self._connections[func] then
+					self._connections[func] = nil
+				end
 			end
 		end,
 		Connected = true
