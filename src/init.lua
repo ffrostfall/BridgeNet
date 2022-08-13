@@ -96,7 +96,7 @@ return {
 	DefaultSend = DefaultSend,
 
 	WaitForBridge = isServer and ServerBridge.waitForBridge or ClientBridge.waitForBridge,
-	CreateBridge = isServer and ServerBridge.new or ClientBridge.new
+	CreateBridge = isServer and ServerBridge.new or ClientBridge.new,
 
 	Start = function(config: { [any]: number })
 		local prefix = if isServer then "SERVER" else "CLIENT"
