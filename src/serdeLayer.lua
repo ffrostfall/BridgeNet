@@ -25,9 +25,12 @@ local function fromHex(toConvert: string): string
 end
 
 local function toHex(toConvert: string): string
-	return string.gsub(toConvert, ".", function(c)
-		return string.format("%02X", string.byte(c))
-	end)
+	local toConvertLength = #toConvert
+	local concat = table.create(toConvertLength)
+	for i=1, toConvertLength do
+		concat[i] = string.format("%02X", string.byte(string.sub(toConvert, i, i)))
+	end
+	return table.concat(concat, "")
 end
 
 function serdeLayer._start()
@@ -133,7 +136,7 @@ function serdeLayer.DestroyIdentifier(id: string): nil
 
 	numOfSerials -= 1
 
-	AutoSerde:FindFirstChild(id):Destroy()
+	AutoSerde:FindFirstChild(id):Destroy() --FindFirstChild because properties exist
 	return nil
 end
 
@@ -160,12 +163,10 @@ end
 	@param uuid string
 	@return string
 ]=]
-function serdeLayer.PackUUID(uuid: string): string
-	return fromHex(uuid)
-end
+serdeLayer.PackUUID = fromHex
 
 --[=[
-	Takes a packed UUID and convetrs it into hexadecimal/readable form
+	Takes a packed UUID and converts it into hexadecimal/readable form
 
 	```lua
 		print(BridgeNet.UnpackUUID(somePackedUUID)) -- Prints 93179AF839C94B9C975DB1B4A4352D75
@@ -174,9 +175,7 @@ end
 	@param uuid string
 	@return string
 ]=]
-function serdeLayer.UnpackUUID(uuid: string): string
-	return toHex(uuid)
-end
+serdeLayer.UnpackUUID = toHex
 
 --[=[
 	Alphabetically sorts a dictionary and turns it into a table. Useful because string keys are typically unnecessary when sending things
@@ -193,16 +192,16 @@ end
 ]=]
 function serdeLayer.DictionaryToTable(dict: { [string]: any })
 	local keys = {}
-	for key, _ in pairs(dict) do
+	for key in pairs(dict) do
 		table.insert(keys, key)
 	end
 
 	table.sort(keys, function(a, b)
 		return string.lower(a) < string.lower(b)
 	end)
-	local toReturn = {}
-	for _, v in ipairs(keys) do
-		table.insert(toReturn, dict[v])
+	local toReturn = table.create(#keys)
+	for i, v in ipairs(keys) do
+		toReturn[i] = dict[v]
 	end
 	return toReturn
 end

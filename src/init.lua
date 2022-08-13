@@ -95,22 +95,11 @@ return {
 	DefaultReceive = DefaultReceive,
 	DefaultSend = DefaultSend,
 
-	WaitForBridge = function(str)
-		if isServer then
-			return ServerBridge.waitForBridge(str)
-		else
-			return ClientBridge.waitForBridge(str)
-		end
-	end,
-	CreateBridge = function(str)
-		if isServer then
-			return ServerBridge.new(str)
-		else
-			return ClientBridge.new(str)
-		end
-	end,
+	WaitForBridge = isServer and ServerBridge.waitForBridge or ClientBridge.waitForBridge,
+	CreateBridge = isServer and ServerBridge.new or ClientBridge.new,
+
 	Start = function(config: { [any]: number })
-		local prefix = if RunService:IsServer() then "SERVER" else "CLIENT"
+		local prefix = if isServer then "SERVER" else "CLIENT"
 
 		if hasStarted then
 			error(string.format("BridgeNet has already been started on the %s", prefix))

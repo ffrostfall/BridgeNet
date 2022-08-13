@@ -39,19 +39,21 @@ function ClientBridge._start(config)
 	rateManager.SetSendRate(config.send_default_rate)
 	rateManager.SetReceiveRate(config.receive_default_rate)
 
-	local lastSend = 0
-	local lastReceive = 0
-	RunService.Heartbeat:Connect(function()
+	local sendDelta = 0
+	local receiveDelta = 0
+	RunService.Heartbeat:Connect(function(delta)
 		debug.profilebegin("ClientBridge")
 
-		if (time() - lastSend) > rateManager.GetSendRate() then
-			local toSend = {}
+		sendDelta += delta
+		receiveDelta += delta
+
+		if sendDelta > rateManager.GetSendRate() then
+			sendDelta = 0
+			local SendQueueLength = #SendQueue
+			local toSend = table.create(SendQueueLength)
 			for _, v in ipairs(SendQueue) do
-				local tbl = {}
-				table.insert(tbl, v.remote)
-				for _, k in ipairs(v.args) do
-					table.insert(tbl, k)
-				end
+				local tbl = table.clone(v.args)
+				table.insert(tbl, 1, v.remote)
 
 				if activeConfig.receive_function ~= nil then
 					activeConfig.receive_function(serdeLayer.WhatIsThis(v.remote, "id"), unpack(v.args))
@@ -59,13 +61,14 @@ function ClientBridge._start(config)
 
 				table.insert(toSend, tbl)
 			end
-			if #toSend ~= 0 then
+			if SendQueueLength ~= 0 then
 				RemoteEvent:FireServer(toSend)
 			end
-			SendQueue = {}
+			table.clear(SendQueue)
 		end
 
-		if (time() - lastReceive) > rateManager.GetReceiveRate() then
+		if receiveDelta > rateManager.GetReceiveRate() then
+			receiveDelta = 0
 			for _, v in ipairs(ReceiveQueue) do
 				local remoteName = serdeLayer.WhatIsThis(v.remote, "id")
 				if BridgeObjects[remoteName] == nil then
@@ -81,15 +84,14 @@ function ClientBridge._start(config)
 					end
 				end
 			end
-			ReceiveQueue = {}
+			table.clear(ReceiveQueue)
 		end
 
 		debug.profileend()
 	end)
 
 	RemoteEvent.OnClientEvent:Connect(function(tbl)
-		for _, v in ipairs(tbl) do
-			local params = v
+		for _, params in ipairs(tbl) do
 			local remote = params[1]
 			table.remove(params, 1)
 			print(params)
@@ -135,10 +137,13 @@ function ClientBridge.from(remoteName: string)
 end
 
 function ClientBridge.waitForBridge(remoteName: string)
-	repeat
+	while true do
+		local bridge = BridgeObjects[remoteName]
+		if bridge then
+			return bridge
+		end
 		task.wait()
-	until BridgeObjects[remoteName]
-	return BridgeObjects[remoteName]
+	end
 end
 
 --[=[
