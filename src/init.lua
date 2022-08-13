@@ -95,7 +95,7 @@ return {
 	DefaultReceive = DefaultReceive,
 	DefaultSend = DefaultSend,
 
-	WaitForBridge = isServer and ServerBridge.waitForBridge or ClientBridge.waitForBridge
+	WaitForBridge = isServer and ServerBridge.waitForBridge or ClientBridge.waitForBridge,
 	CreateBridge = isServer and ServerBridge.new or ClientBridge.new
 
 	Start = function(config: { [any]: number })
