@@ -118,9 +118,14 @@ function ClientBridge.new(remoteName: string)
 	if self._id == nil then
 		task.spawn(function()
 			local timer = 0
+			local nextOutput = timer + 0.1
 			repeat
 				timer += task.wait()
 				self._id = serdeLayer.WhatIsThis(self._name, "compressed")
+				if timer > nextOutput then
+					nextOutput += 0.1
+					print("[BridgeNet] waiting for (" .. self._name .. ") to be replicated to the client")
+				end
 			until self._id ~= nil or timer >= 10
 		end)
 	end
