@@ -92,7 +92,6 @@ function ClientBridge._start(config)
 			local params = v
 			local remote = params[1]
 			table.remove(params, 1)
-			print(params)
 			table.insert(ReceiveQueue, {
 				remote = remote,
 				args = params,
