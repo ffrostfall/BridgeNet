@@ -1,6 +1,8 @@
 [Documentation](https://ffrostflame.github.io/BridgeNet/)
 
+## Contributors
+Please add your changes to CHANGELOG.md when you make a PR, it makes it a lot easier on me to make new releases and prevents a lot of confusion.
+
 ## coming features:
-- using attributes instead of instances for the serde layer
 - middleware and rate limiting. there's internal support right now, but I delayed it for a later date due to some architecture concerns.
 - typechecking

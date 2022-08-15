@@ -497,6 +497,7 @@ end
 	@return nil
 ]=]
 function ServerBridge:Destroy()
+	BridgeObjects[self._name] = nil
 	serdeLayer.DestroyIdentifier(self.Name)
 	for k, v in ipairs(self) do
 		if v.Destroy ~= nil then

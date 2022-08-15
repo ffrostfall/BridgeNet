@@ -1,7 +1,13 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
-# 1.4.3-alpha
+# 1.4.4-beta
+- You no longer need to declare DefaultReceive and DefaultSend- they default to 60.
+- Fixed ServerBridge:Destroy()
+- Added print message while waiting for the ClientBridge to be replicated
+- Removed the print statement in OnClientEvent. oops!
+
+# 1.4.3-beta
 - Removed .FromBridge, use .WaitForBridge or .CreateBridge (createbridge returns the existing bridge object if it exists)
 - Configuration object now uses symbols instead of regular strings
 - Added global custom logging support. UNSTABLE, DONT USE IN PRODUCTION

@@ -118,8 +118,8 @@ return {
 		end
 
 		local configToSend = {
-			send_default_rate = config[DefaultSend],
-			receive_default_rate = config[DefaultReceive],
+			send_default_rate = config[DefaultSend] or 60,
+			receive_default_rate = config[DefaultReceive] or 60,
 			print_remotes = config[PrintRemotes],
 			send_function = config[SendLogFunction],
 			receive_function = config[ReceiveLogFunction],
