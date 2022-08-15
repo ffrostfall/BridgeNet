@@ -3,10 +3,6 @@
   "version": "1.4.5",
   "description": "A networking library for Roblox",
   "main": "src/init.lua",
-  "scripts": {
-    "build": "rbxtsc",
-    "watch": "rbxtsc -w"
-  },
   "repository": "https://github.com/ffrostflame/BridgeNet",
   "homepage": "https://ffrostflame.github.io/BridgeNet/",
   "typings": "src/index.d.ts",
@@ -29,5 +25,6 @@
   "dependencies": {
     "@docusaurus/core": "^2.0.0-rc.1",
     "@docusaurus/preset-classic": "^2.0.0-rc.1"
-  }
+  },
+  "files": ["src"]
 }
