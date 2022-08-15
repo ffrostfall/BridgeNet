@@ -1,6 +1,9 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
+# 1.4.5-beta
+- Ported to typescript!
+
 # 1.4.4-beta
 - You no longer need to declare DefaultReceive and DefaultSend- they default to 60.
 - Fixed ServerBridge:Destroy()
