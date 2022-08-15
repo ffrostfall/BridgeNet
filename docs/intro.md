@@ -5,7 +5,7 @@ sidebar_position: 1
 # BridgeNet
 
 BridgeNet is a networking library that solves a multitude of annoyances and problems when working directly with RemoteEvents, while remaining performant
-and not loosing the ability to easily debug. BridgeNet takes a philosophy of letting the developer optimize what's sent over the wire, while optimizing the calls itself,
+and not losing the ability to easily debug. BridgeNet takes a philosophy of letting the developer optimize what's sent over the wire, while optimizing the calls itself,
 trying to be as non-intrusive as possible.
 
 ## Features

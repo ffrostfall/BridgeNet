@@ -16,15 +16,17 @@ This starts up all the internal BridgeNet processes, and allows you to use the l
 need to call this anywhere else.
 
 ## Using BridgeNet
-BridgeNet uses objects known as "bridges". These objects are the equivelant of RemoteEvents in normal Roblox. They are created as such:
+BridgeNet uses objects known as "bridges". These objects are the equivalant of RemoteEvents in normal Roblox. They are created as such:
 ```lua title="init.lua"
 local Bridge = BridgeNet.CreateBridge("RemoteNameHere")
 Bridge:FireAll("Firing all players")
 ```
-All the optimizations are handled for you! These is packaged, sent out with a compressed string ID, and received on the client.
+All the optimizations are handled for you! These are packaged, sent out with a compressed string ID, and received on the client.
 
 ## Using the identifier system
-A common pattern in Roblox are constant strings that are sent over the client/server boundary. These are typically
+A common pattern in Roblox are constant strings that are sent over the client/server boundary. The identifier strings are 1-2 character strings
+that represent longer strings- which you define. This saves on bandwith because sending shorter strings instead of longer strings saves on data.
+These are typically
 static, and can depict things like action requests, item names, all of that. This library provides an easy system to optimize
 these: the 3 functions ``CreateIdentifier``, ``WhatIsThis``, and ``DestroyIdentifier``. They are used as such:
 ```lua title="spellHandler.client.lua"

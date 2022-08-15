@@ -3,7 +3,7 @@ sidebar_position: 4
 ---
 
 # Server-Client Example
-BridgeNet.Start should always be called first, before creating bridges.
+BridgeNet.Start should always be called first with the table, before creating bridges.
 
 ## Server
 ```lua name="example.server.lua"
