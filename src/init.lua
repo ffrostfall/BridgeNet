@@ -18,7 +18,8 @@ local hasStarted = false
 	@function CreateBridge
 	@within BridgeNet
 	
-	Creates a ServerBridge or a ClientBridge depending on if it's the server or client calling.
+	Creates a ServerBridge or a ClientBridge depending on if it's the server or client calling. If a Bridge of that name already exists, it'll return that Bridge object.
+	This can be used to fetch bridges, but .WaitForBridge is recommended.
 	
 	```lua
 	local Bridge = BridgeNet.CreateBridge("Remote")
@@ -49,11 +50,18 @@ local hasStarted = false
 	@function Start
 	@within BridgeNet
 	
+	This function starts BridgeNet. It must be called on both the client and server.
+		
+	All possible parameters:
+		- DefaultReceive (BridgeNet.DefaultReceive) sets the rate of which incoming data is handled. Defaults to 60 hz
+		- DefaultSend (BridgeNet.DefaultSend) sets the rate of which outgoing data is sent. Defaults to 60 hz
+		- SendLogFunction (BridgeNet.SendLogFunction) sets the custom logging function for all outgoing data. Default is none [UNSTABLE]
+		- ReceiveLogFunction (BridgeNet.ReceiveLogFunction) sets the custom logging function for all incoming data. Default is none [UNSTABLE]
 	```lua
 		BridgeNet.Start({ -- server
 			[BridgeNet.DefaultReceive] = 60,
 			[BridgeNet.DefaultSend] = 60,
-			[SendLogFunction] = function(remote, plrs, ...) -- UNSTABLE, DON'T USE IN PRODUCTION.
+			[SendLogFunction] = function(remote, plrs, ...) 
 				local args = table.pack(...)
 				print(remote, plrs, args)
 			end,
