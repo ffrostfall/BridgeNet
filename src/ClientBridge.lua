@@ -54,7 +54,7 @@ function ClientBridge._start(config)
 				end
 
 				if activeConfig.receive_function ~= nil then
-					activeConfig.receive_function(serdeLayer.WhatIsThis(v.remote, "id"), table.unpack(v.args))
+					activeConfig.receive_function(serdeLayer.WhatIsThis(v.remote, "id"), unpack(v.args))
 				end
 
 				table.insert(toSend, tbl)
@@ -72,14 +72,13 @@ function ClientBridge._start(config)
 					continue
 					--error("[BridgeNet] Client received non-existant Bridge. Naming mismatch?")
 				end
-				for _, k in pairs(BridgeObjects[remoteName]._connections) do
-					task.spawn(function()
+				for callback, timesConnected in pairs(BridgeObjects[remoteName]._connections) do
+					for _ = 1, timesConnected do
+						task.spawn(callback, unpack(v.args))
 						if activeConfig.receive_function ~= nil then
-							activeConfig.receive_function(remoteName, table.unpack(v.args))
+							task.spawn(activeConfig.receive_function, remoteName, unpack(v.args))
 						end
-
-						k(table.unpack(v.args))
-					end)
+					end
 				end
 			end
 			ReceiveQueue = {}
@@ -93,7 +92,6 @@ function ClientBridge._start(config)
 			local params = v
 			local remote = params[1]
 			table.remove(params, 1)
-			print(params)
 			table.insert(ReceiveQueue, {
 				remote = remote,
 				args = params,
@@ -116,6 +114,20 @@ function ClientBridge.new(remoteName: string)
 	self._connections = {}
 
 	self._id = serdeLayer.WhatIsThis(self._name, "compressed")
+	if self._id == nil then
+		task.spawn(function()
+			local timer = 0
+			local nextOutput = timer + 0.1
+			repeat
+				timer += task.wait()
+				self._id = serdeLayer.WhatIsThis(self._name, "compressed")
+				if timer > nextOutput then
+					nextOutput += 0.1
+					print("[BridgeNet] waiting for (" .. self._name .. ") to be replicated to the client")
+				end
+			until self._id ~= nil or timer >= 10
+		end)
+	end
 
 	BridgeObjects[self._name] = self
 	return self
@@ -134,7 +146,7 @@ function ClientBridge.waitForBridge(remoteName: string)
 end
 
 --[=[
-	The equivelant of :FireServer().
+	The equivalent of :FireServer().
 	
 	```lua
 	local Bridge = ClientBridge.new("Remote")
@@ -170,12 +182,27 @@ end
 ]=]
 function ClientBridge:Connect(func: (...any) -> nil)
 	assert(type(func) == "function", "[BridgeNet] Attempt to connect non-function to a Bridge")
-	local index = table.insert(self._connections, func)
-	return {
+	if self._connections[func] then
+		self._connections[func] += 1
+	else
+		self._connections[func] = 1
+	end
+
+	local connection
+	connection = {
 		Disconnect = function()
-			table.remove(self._connections, index)
+			if connection.Connected then
+				connection.Connected = false
+				self._connections[func] -= 1
+				if 1 > self._connections[func] then
+					self._connections[func] = nil
+				end
+			end
 		end,
+		Connected = true
 	}
+
+	return connection
 end
 
 --[[
