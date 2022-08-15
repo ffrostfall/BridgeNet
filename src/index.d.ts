@@ -8,10 +8,10 @@ import type { default as serdeLayer } from './serdeLayer';
 import type { default as rateManager } from './rateManager';
 
 type StartOptions = {
-	[DefaultReceive]: number;
-	[DefaultSend]: number;
-	[PrintRemotes]: boolean;
-	[ReceiveLogsFunction]: (...any) => undefined;
+	[DefaultReceive]: number | null;
+	[DefaultSend]: number | null;
+	[PrintRemotes]: boolean | null;
+	[ReceiveLogsFunction]: (...any) => undefined | null;
 };
 
 interface BridgeNet {
@@ -26,6 +26,8 @@ interface BridgeNet {
 
 	DictionaryToTable: serdeLayer.DictionaryToTable;
 
+	CreateBridge: (name: string) => ClientBridge.CreateBridge | ServerBridge.CreateBridge;
+	
 	Start: (options: StartOptions) => undefined;
 }
 

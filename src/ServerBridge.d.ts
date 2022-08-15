@@ -14,14 +14,12 @@ declare class ServerObject {
 	FireAll: (...arguments: any) => null;
 	FireAllInRange: (point: Vector3, range: number, ...arguments: any) => { Player };
 	FireAllInRangeExcept: (blacklistedPlayers: {Player}, point: Vector3, range: number, ...arguments: any) => { Player };
-	Connection: (Function: (plr: Player,...arguments: any) => never) => undefined;
+	Connection: (callback: (...arguments: any) => never) => undefined
 }
 
-interface ServerBridge {
-	new: (remoteName: string) => ServerObject
-	waitForBridge: (remoteName: string) => ServerObject
+declare namespace ServerBridge {
+	export type CreateBridge = (name: string) => ServerObject
+	export type WaitForBridge = (name: string) => ServerObject
 }
-
-declare const ServerBridge: ServerBridge;
 
 export = ServerBridge

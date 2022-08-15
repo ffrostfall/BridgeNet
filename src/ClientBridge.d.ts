@@ -1,14 +1,12 @@
 declare class ClientObject {
 	Fire: (...arguments: any) => undefined
-	Connection: ((...arguments: any)=>null) => null
+	 Connection: (callback: (...arguments: any) => never) => undefined
 	Destroy: () => null
 }
 
-interface ClientBridge {
-	new: (remoteName: string) => ClientObject
-	waitForBridge: () => ClientObject
+declare namespace ClientBridge {
+	export type CreateBridge = (name: string) => ClientObject
+	export type WaitForBridge = (name: string) => ClientObject
 }
-
-declare const ClientBridge: ClientBridge
 
 export = ClientBridge
