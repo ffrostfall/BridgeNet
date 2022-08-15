@@ -2,8 +2,6 @@
 	"compilerOptions": {
 		"declaration": true,
 		"module": "commonjs",
-		"target": "ES2019",
-		"lib": ["ES2019"],
 		"strict": true,
 		"noFallthroughCasesInSwitch": true,
 		"strictNullChecks": true,
@@ -11,10 +9,14 @@
 		"removeComments": true,
 		"forceConsistentCasingInFileNames": true,
 		"composite": true,
+		"noLib": true,
 		"sourceMap": true,
 		"outDir": "out",
 		"baseUrl": "src",
 		"noImplicitAny": false,
+		"moduleResolution": "Node",
+		"allowSyntheticDefaultImports": true,
+		"typeRoots": ["node_modules/@rbxts"],
 		"paths": {
 			"*": ["*"]
 		},
@@ -28,6 +30,9 @@
 				"exclude": ["**/node_modules/**"],
 				"afterDeclarations": true
 			}
-		]
+		],
+		"rootDir": "src",
+		"incremental": true,
+		"tsBuildInfoFile": "out/tsconfig.tsbuildinfo"
 	}
 }
