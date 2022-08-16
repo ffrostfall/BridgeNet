@@ -145,10 +145,10 @@ return {
 		local function recursivelyAdd(tableTo: { [any]: string })
 			local toReturn = {}
 			for k, v in pairs(tableTo) do
-				if typeof(k) ~= "table" then
+				if typeof(v) ~= "table" then
 					toReturn[k] = new(v)
-				elseif typeof(k) == "table" then
-					recursivelyAdd(v)
+				else
+					toReturn[k] = recursivelyAdd(v)
 				end
 			end
 			return toReturn

@@ -23,8 +23,20 @@ Object:OnInvoke(function(plr, arg1, arg2)
 	return "it works!", "yeah."
 end)
 
+print(BridgeNet.CreateBridgesFromDictionary({
+	Something = "Key1",
+	SomethingB = "Key2",
+	IsItDeep = {
+		Yes = "No",
+		TestA = "TestA",
+		Again = {
+			TestB = "TestB",
+		},
+	},
+}))
+
 while task.wait(1) do -- For normal tests, do task.wait
-	Object:FireTo(game.Players:GetPlayers()[1], "Received: Fire", "Test")
+	Object:FireTo(Players:GetPlayers()[1], "Received: Fire", "Test")
 	print(Object:FireAllInRange(Vector3.new(0, 0, 0), 50, "Received: FireAllInRange"))
 	Object:FireAll("Received: FireAll", "Test")
 
