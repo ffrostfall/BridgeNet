@@ -34,8 +34,8 @@ interface BridgeNet {
 
 	DictionaryToTable: serdeLayer.DictionaryToTable;
 
-	CreateBridgesFromDictionary: (StringDictionary) => BridgeDictionary
-	CreateBridge: (name: string) => ClientBridge.CreateBridge | ServerBridge.CreateBridge;
+	CreateBridgesFromDictionary: (StringDictionary) => BridgeDictionary;
+	CreateBridge: ClientBridge.CreateBridge | ServerBridge.CreateBridge;
 	
 	Start: (options: StartOptions) => undefined;
 }

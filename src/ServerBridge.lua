@@ -6,15 +6,12 @@ local serdeLayer = require(script.Parent.serdeLayer)
 local rateManager = require(script.Parent.rateManager)
 
 type queueSendPacket = { plrs: string | Player | { Player }, remote: string, args: { any } }
-
 type queueReceivePacket = { plr: Player, remote: string, args: { any } }
-
 type config = {
 	send_default_rate: number,
 	receive_default_rate: number,
 	--one_remote_event: boolean,
 }
-
 type logEntry = {
 	Remote: Player,
 }
@@ -643,5 +640,7 @@ function ServerBridge:Destroy()
 	end
 	setmetatable(self, nil)
 end
+
+export type ServerObject = typeof(setmetatable({}, ServerBridge))
 
 return ServerBridge

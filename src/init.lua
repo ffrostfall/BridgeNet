@@ -8,6 +8,14 @@ local rateManager = require(script.rateManager)
 local isServer = RunService:IsServer()
 local hasStarted = false
 
+type ClientBridgeDictionary = {
+	[string]: ClientBridgeDictionary | ClientBridge.ClientObject,
+}
+
+type ServerBridgeDictionary = {
+	[string]: ServerBridgeDictionary | ServerBridge.ServerObject,
+}
+
 --[=[
 	@class BridgeNet
 	
@@ -122,9 +130,9 @@ return {
 
 	WaitForBridge = function(str)
 		if isServer then
-			return ServerBridge.waitForBridge(str)
+			return ServerBridge.waitForBridge(str) :: ServerBridge.ServerObject
 		else
-			return ClientBridge.waitForBridge(str)
+			return ClientBridge.waitForBridge(str) :: ClientBridge.ClientObject
 		end
 	end,
 	CreateBridge = function(str)
@@ -137,11 +145,10 @@ return {
 	CreateBridgesFromDictionary = function(tbl: { [any]: string })
 		local new
 		if isServer then
-			new = ServerBridge.new
+			new = ServerBridge.new :: ServerBridge.ServerObject
 		else
-			new = ClientBridge.new
+			new = ClientBridge.new :: ClientBridge.ClientObject
 		end
-
 		local function recursivelyAdd(tableTo: { [any]: string })
 			local toReturn = {}
 			for k, v in pairs(tableTo) do
