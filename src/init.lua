@@ -47,6 +47,23 @@ local hasStarted = false
 ]=]
 
 --[=[
+	@function CreateBridgesFromDictionary
+	@within BridgeNet
+	
+	Loops through the dictionary given and creates ``Bridge``s for the dictionary keys.
+	Example usage:
+	```lua
+	local Network = BridgeNet.CreateBridgesFromDictionary({
+		RemoteA = "RemoteA",
+		RemoteB = "Rem_B", -- Creates bridge "Rem_B" with index "RemoteB"
+		OtherRemotes = {
+			PrintStuff = "Print",
+			DoStuff = "DoStuff",
+		},
+	})
+]=]
+
+--[=[
 	@function Start
 	@within BridgeNet
 	
@@ -116,6 +133,28 @@ return {
 		else
 			return ClientBridge.new(str)
 		end
+	end,
+	CreateBridgesFromDictionary = function(tbl: { [any]: string })
+		local new
+		if isServer then
+			new = ServerBridge.new
+		else
+			new = ClientBridge.new
+		end
+
+		local function recursivelyAdd(tableTo: { [any]: string })
+			local toReturn = {}
+			for k, v in pairs(tableTo) do
+				if typeof(k) ~= "table" then
+					toReturn[k] = new(v)
+				elseif typeof(k) == "table" then
+					recursivelyAdd(v)
+				end
+			end
+			return toReturn
+		end
+
+		return recursivelyAdd(tbl)
 	end,
 	Start = function(config: { [any]: number })
 		local prefix = if RunService:IsServer() then "SERVER" else "CLIENT"
