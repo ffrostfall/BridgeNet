@@ -287,7 +287,7 @@ function ServerBridge:OnInvoke(callback: (...any) -> nil)
 	local function wrappedCallback(...)
 		local success, args = pcall(function(...)
 			return table.pack(callback(...))
-		end)
+		end, ...)
 
 		if success == true then
 			return table.unpack(args)
