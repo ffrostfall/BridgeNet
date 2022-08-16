@@ -1,7 +1,9 @@
 declare class ClientObject {
-	Fire: (...arguments: any) => undefined
-	 Connection: (callback: (...arguments: any) => never) => undefined
-	Destroy: () => null
+	Fire: (...arguments: any) => undefined;
+	Connection: (callback: (...arguments: any) => never) => undefined;
+	Destroy: () => null;
+	InvokeServer: (...arguments: any) => Promise<any>;
+	InvokeServerAsync: (...arguments: any) => null;
 }
 
 declare namespace ClientBridge {

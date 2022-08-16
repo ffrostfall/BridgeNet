@@ -7,6 +7,7 @@ Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 	- Added ClientBridge:InvokeServerAsync(), yields.
 	- Added ClientBridge:InvokeServer(), returns a promise instead of yielding.
 - Refactored some code to be better-organized.
+- Refactored project structure / testing code to allow for dependencies
 - Added Promise as a dependency
 - Added GoodSignal as a dependency
 

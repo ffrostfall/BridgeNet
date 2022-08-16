@@ -174,7 +174,7 @@ function ServerBridge._start(config: config): nil
 								plrs = v.plr,
 								remote = obj._id,
 								uuid = uuid,
-								args = { obj._onInvoke(unpack(v.args)) },
+								args = { obj._onInvoke(v.plr, unpack(v.args)) },
 							})
 						end)
 					end

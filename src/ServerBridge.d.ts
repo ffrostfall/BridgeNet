@@ -14,7 +14,8 @@ declare class ServerObject {
 	FireAll: (...arguments: any) => null;
 	FireAllInRange: (point: Vector3, range: number, ...arguments: any) => { Player };
 	FireAllInRangeExcept: (blacklistedPlayers: {Player}, point: Vector3, range: number, ...arguments: any) => { Player };
-	Connection: (callback: (...arguments: any) => never) => undefined
+	Connection: (callback: (...arguments: any) => never) => undefined;
+	OnInvoke: (callback: (plr: Player, ...arguments: any) => null) => null;
 }
 
 declare namespace ServerBridge {
