@@ -169,14 +169,29 @@ function ServerBridge._start(config: config): nil
 							local uuid = args[2]
 
 							table.remove(args, 1)
-							table.remove(args, 2)
+							table.remove(args, 1) -- Arg 2 becomes arg1 after arg1 is removed.
 							table.insert(SendQueue, {
 								plrs = v.plr,
 								remote = obj._id,
 								uuid = uuid,
+								invokeReply = true,
 								args = { obj._onInvoke(v.plr, unpack(v.args)) },
 							})
 						end)
+					else
+						-- onInvoke is not set send an error to the client
+						local args = v.args
+						local uuid = args[2]
+
+						table.remove(args, 1)
+						table.remove(args, 1) -- Arg 2 becomes arg1 after arg1 is removed.
+						table.insert(SendQueue, {
+							plrs = v.plr,
+							remote = obj._id,
+							uuid = uuid,
+							invokeReply = true,
+							args = { "err", "onInvoke has not yet been registered on the server for " .. obj._name },
+						})
 					end
 				else
 					if activeConfig.receive_logging ~= nil then
@@ -283,7 +298,19 @@ function ServerBridge:FireTo(plr: Player, ...: any)
 end
 
 function ServerBridge:OnInvoke(callback: (...any) -> nil)
-	self._onInvoke = callback
+	local function wrappedCallback(...)
+		local success, args = pcall(function(...)
+			return table.pack(callback(...))
+		end, ...)
+
+		if success == true then
+			return table.unpack(args)
+		else
+			return "err", args
+		end
+	end
+
+	self._onInvoke = wrappedCallback --wrappedCallback
 end
 
 --[=[

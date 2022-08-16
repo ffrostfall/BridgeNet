@@ -105,8 +105,9 @@ function ClientBridge._start(config)
 				elseif args[1] == InvokeReply then
 					local uuid = args[2]
 					table.remove(args, 1)
-					table.remove(args, 2)
-					coroutine.resume(threads[uuid], unpack(args))
+					table.remove(args, 1)
+					task.spawn(threads[uuid], unpack(args))
+					threads[uuid] = nil -- don't want a memory leak ;)
 				end
 			end
 			ReceiveQueue = {}
@@ -212,7 +213,12 @@ function ClientBridge:InvokeServerAsync(...: any)
 		args = { ... },
 	})
 
-	return coroutine.yield()
+	local response = { coroutine.yield() }
+	if response[1] == "err" then
+		error(response[2], 2)
+	end
+
+	return table.unpack(response)
 end
 
 function ClientBridge:InvokeServer(...)
