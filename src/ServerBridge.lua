@@ -284,7 +284,19 @@ function ServerBridge:FireTo(plr: Player, ...: any)
 end
 
 function ServerBridge:OnInvoke(callback: (...any) -> nil)
-	self._onInvoke = callback
+	local function wrappedCallback(...)
+		local success, args = pcall(function(...)
+			return table.pack(callback(...))
+		end)
+
+		if success == true then
+			return table.unpack(args)
+		else
+			return "err", args
+		end
+	end
+
+	self._onInvoke = wrappedCallback --wrappedCallback
 end
 
 --[=[

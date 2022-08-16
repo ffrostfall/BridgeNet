@@ -213,7 +213,12 @@ function ClientBridge:InvokeServerAsync(...: any)
 		args = { ... },
 	})
 
-	return coroutine.yield()
+	local response = { coroutine.yield() }
+	if response[1] == "err" then
+		error(response[2], 2)
+	end
+
+	return table.unpack(response)
 end
 
 function ClientBridge:InvokeServer(...)
