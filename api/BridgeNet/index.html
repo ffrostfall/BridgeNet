@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="generator" content="Docusaurus v2.0.0-beta.21">
 <title data-rh="true">BridgeNet | BridgeNet</title><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://ffrostflame.github.io/BridgeNet/api/BridgeNet"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docusaurus_tag" content="default"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docsearch:docusaurus_tag" content="default"><meta data-rh="true" property="og:title" content="BridgeNet | BridgeNet"><meta data-rh="true" name="description" content="The interface for the package."><meta data-rh="true" property="og:description" content="The interface for the package."><link data-rh="true" rel="icon" href="/BridgeNet/favicon.png"><link data-rh="true" rel="canonical" href="https://ffrostflame.github.io/BridgeNet/api/BridgeNet"><link data-rh="true" rel="alternate" href="https://ffrostflame.github.io/BridgeNet/api/BridgeNet" hreflang="en"><link data-rh="true" rel="alternate" href="https://ffrostflame.github.io/BridgeNet/api/BridgeNet" hreflang="x-default"><link rel="stylesheet" href="/BridgeNet/assets/css/styles.425d8a3f.css">
-<link rel="preload" href="/BridgeNet/assets/js/runtime~main.ca2499e3.js" as="script">
-<link rel="preload" href="/BridgeNet/assets/js/main.d33f035c.js" as="script">
+<link rel="preload" href="/BridgeNet/assets/js/runtime~main.42c7f359.js" as="script">
+<link rel="preload" href="/BridgeNet/assets/js/main.9d23d91d.js" as="script">
 </head>
 <body class="navigation-with-keyboard">
 <script>!function(){function e(e){document.documentElement.setAttribute("data-theme",e)}var t=function(){var e=null;try{e=localStorage.getItem("theme")}catch(e){}return e}();null!==t?e(t):window.matchMedia("(prefers-color-scheme: dark)").matches?e("dark"):(window.matchMedia("(prefers-color-scheme: light)").matches,e("light"))}()</script><div id="__docusaurus">
@@ -29,7 +29,21 @@
 <span class="token keyword">local</span> Bridge <span class="token operator">=</span> BridgeNet<span class="token punctuation">.</span><span class="token function">WaitForBridge</span><span class="token punctuation">(</span><span class="token string">"Remote"</span><span class="token punctuation">)</span>
 <span class="token function">print</span><span class="token punctuation">(</span><span class="token string">"client is done waiting! was created in another script."</span><span class="token punctuation">)</span>
 </code></pre>
-</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="Start"><code style="text-decoration:none">Start</code><a class="hash-link" href="#Start" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/ffrostflame/bridgenet//blob/main/src/init.lua#L77"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>BridgeNet<!-- -->.</code><code class="green_DgR4">Start</code><code>(</code><code>options<!-- -->: </code><code class="purple_ieR2">{</code><code class="purple_ieR2">}</code><code>) → </code><code class="blue_P4bS">nil</code></div><div>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="CreateBridgesFromDictionary"><code style="text-decoration:none">CreateBridgesFromDictionary</code><a class="hash-link" href="#CreateBridgesFromDictionary" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/ffrostflame/bridgenet//blob/main/src/init.lua#L65"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>BridgeNet<!-- -->.</code><code class="green_DgR4">CreateBridgesFromDictionary</code><code>(</code><code>) → </code><code>(</code><code>)</code></div><div>
+<p>
+  Loops through the dictionary given and creates <code>Bridge</code>s for the dictionary keys.
+  Example usage:
+</p>
+<pre class="language-lua"><code class="language-lua"><span class="token keyword">local</span> Network <span class="token operator">=</span> BridgeNet<span class="token punctuation">.</span><span class="token function">CreateBridgesFromDictionary</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+	RemoteA <span class="token operator">=</span> <span class="token string">"RemoteA"</span><span class="token punctuation">,</span>
+	RemoteB <span class="token operator">=</span> <span class="token string">"Rem_B"</span><span class="token punctuation">,</span> <span class="token comment">-- Creates bridge "Rem_B" with index "RemoteB"</span>
+	OtherRemotes <span class="token operator">=</span> <span class="token punctuation">{</span>
+		PrintStuff <span class="token operator">=</span> <span class="token string">"Print"</span><span class="token punctuation">,</span>
+		DoStuff <span class="token operator">=</span> <span class="token string">"DoStuff"</span><span class="token punctuation">,</span>
+	<span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="Start"><code style="text-decoration:none">Start</code><a class="hash-link" href="#Start" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/ffrostflame/bridgenet//blob/main/src/init.lua#L94"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>BridgeNet<!-- -->.</code><code class="green_DgR4">Start</code><code>(</code><code>options<!-- -->: </code><code class="purple_ieR2">{</code><code class="purple_ieR2">}</code><code>) → </code><code class="blue_P4bS">nil</code></div><div>
 <p>This function starts BridgeNet. It must be called on both the client and server.</p>
 <p>All possible parameters:</p>
 <pre><code>- DefaultReceive (BridgeNet.DefaultReceive) sets the rate of which incoming data is handled. Defaults to 60 hz
@@ -90,6 +104,17 @@
             }
         },
         {
+            &quot;name&quot;: &quot;CreateBridgesFromDictionary&quot;,
+            &quot;desc&quot;: &quot;Loops through the dictionary given and creates ``Bridge``s for the dictionary keys.\nExample usage:\n```lua\nlocal Network = BridgeNet.CreateBridgesFromDictionary({\n\tRemoteA = \&quot;RemoteA\&quot;,\n\tRemoteB = \&quot;Rem_B\&quot;, -- Creates bridge \&quot;Rem_B\&quot; with index \&quot;RemoteB\&quot;\n\tOtherRemotes = {\n\t\tPrintStuff = \&quot;Print\&quot;,\n\t\tDoStuff = \&quot;DoStuff\&quot;,\n\t},\n})&quot;,
+            &quot;params&quot;: [],
+            &quot;returns&quot;: [],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 65,
+                &quot;path&quot;: &quot;src/init.lua&quot;
+            }
+        },
+        {
             &quot;name&quot;: &quot;Start&quot;,
             &quot;desc&quot;: &quot;This function starts BridgeNet. It must be called on both the client and server.\n\t\nAll possible parameters:\n\t- DefaultReceive (BridgeNet.DefaultReceive) sets the rate of which incoming data is handled. Defaults to 60 hz\n\t- DefaultSend (BridgeNet.DefaultSend) sets the rate of which outgoing data is sent. Defaults to 60 hz\n\t- SendLogFunction (BridgeNet.SendLogFunction) sets the custom logging function for all outgoing data. Default is none [UNSTABLE]\n\t- ReceiveLogFunction (BridgeNet.ReceiveLogFunction) sets the custom logging function for all incoming data. Default is none [UNSTABLE]\n```lua\n\tBridgeNet.Start({ -- server\n\t\t[BridgeNet.DefaultReceive] = 60,\n\t\t[BridgeNet.DefaultSend] = 60,\n\t\t[SendLogFunction] = function(remote, plrs, ...) \n\t\t\tlocal args = table.pack(...)\n\t\t\tprint(remote, plrs, args)\n\t\tend,\n\t\t[ReceiveLogFunction] = function(remote, plr, ...)\n\t\t\tprint(remote, plr, args)\n\t\tend,\n\t})\n```&quot;,
             &quot;params&quot;: [
@@ -107,7 +132,7 @@
             ],
             &quot;function_type&quot;: &quot;static&quot;,
             &quot;source&quot;: {
-                &quot;line&quot;: 77,
+                &quot;line&quot;: 94,
                 &quot;path&quot;: &quot;src/init.lua&quot;
             }
         }
@@ -120,8 +145,8 @@
         &quot;line&quot;: 16,
         &quot;path&quot;: &quot;src/init.lua&quot;
     }
-}</pre></details></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#types" class="table-of-contents__link toc-highlight">Types</a></li><li><a href="#properties" class="table-of-contents__link toc-highlight">Properties</a></li><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a><ul><li><a href="#CreateBridge" class="table-of-contents__link toc-highlight">.CreateBridge</a></li><li><a href="#Start" class="table-of-contents__link toc-highlight">.Start</a></li><li><a href="#WaitForBridge" class="table-of-contents__link toc-highlight">.WaitForBridge</a></li></ul></li></ul></div></div></div></div></main></div></div><footer class="footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2022 ffrostflame. Built with Moonwave and Docusaurus.</div></div></div></footer></div>
-<script src="/BridgeNet/assets/js/runtime~main.ca2499e3.js"></script>
-<script src="/BridgeNet/assets/js/main.d33f035c.js"></script>
+}</pre></details></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#types" class="table-of-contents__link toc-highlight">Types</a></li><li><a href="#properties" class="table-of-contents__link toc-highlight">Properties</a></li><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a><ul><li><a href="#CreateBridge" class="table-of-contents__link toc-highlight">.CreateBridge</a></li><li><a href="#CreateBridgesFromDictionary" class="table-of-contents__link toc-highlight">.CreateBridgesFromDictionary</a></li><li><a href="#Start" class="table-of-contents__link toc-highlight">.Start</a></li><li><a href="#WaitForBridge" class="table-of-contents__link toc-highlight">.WaitForBridge</a></li></ul></li></ul></div></div></div></div></main></div></div><footer class="footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2022 ffrostflame. Built with Moonwave and Docusaurus.</div></div></div></footer></div>
+<script src="/BridgeNet/assets/js/runtime~main.42c7f359.js"></script>
+<script src="/BridgeNet/assets/js/main.9d23d91d.js"></script>
 </body>
 </html>
