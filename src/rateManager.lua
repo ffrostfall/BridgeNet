@@ -38,10 +38,28 @@ function RateManager.SetSendRate(rate: number): nil
 	return nil
 end
 
+--[=[
+	Returns the current rate of which connections are handled.
+	
+	```lua
+		print(RateManager.GetReceiveRate()) -- Prints 60
+	```
+	
+	@return number
+]=]
 function RateManager.GetReceiveRate(): number
 	return 1 / receiveRate
 end
 
+--[=[
+	Returns the current rate of which remotes are fired
+	
+	```lua
+		print(RateManager.GetSendRate()) -- Prints 60
+	```
+	
+	@return number
+]=]
 function RateManager.GetSendRate(): number
 	return 1 / sendRate
 end
