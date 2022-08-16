@@ -297,6 +297,22 @@ function ServerBridge:FireTo(plr: Player, ...: any)
 	table.insert(SendQueue, toSend)
 end
 
+--[=[
+	Set the handler for when the server is invoked. By default, this is nil. The client will hang forever as of writing this right now.
+	
+	```lua
+	local Bridge = BridgeNet.CreateBridge("Remote")
+	
+	local data = Bridge:OnInvoke(function(data)
+		if data == "whats 2+2?" then
+			return "4"
+		end
+	end)
+	```
+	
+	@param callback (...any) -> nil
+	@return Promise
+]=]
 function ServerBridge:OnInvoke(callback: (...any) -> nil)
 	local function wrappedCallback(...)
 		local success, args = pcall(function(...)

@@ -1,12 +1,19 @@
 {
   "name": "@rbxts/bridgenet",
-  "version": "1.5.5",
+  "version": "1.6.5",
   "description": "A networking library for Roblox",
   "main": "src/init.lua",
   "repository": "https://github.com/ffrostflame/BridgeNet",
   "homepage": "https://ffrostflame.github.io/BridgeNet/",
   "typings": "src/index.d.ts",
-  "keywords": ["roblox", "networking", "net-library", "roblox-ts", "bridge", "bridgenet"],
+  "keywords": [
+    "roblox",
+    "networking",
+    "net-library",
+    "roblox-ts",
+    "bridge",
+    "bridgenet"
+  ],
   "author": "@rbxts",
   "license": "MIT",
   "devDependencies": {
@@ -14,17 +21,20 @@
     "@rbxts/types": "^1.0.633",
     "@typescript-eslint/eslint-plugin": "^5.33.0",
     "@typescript-eslint/parser": "^5.33.0",
-    "typescript-transform-paths": "^3.3.1",
     "eslint": "^8.21.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-roblox-ts": "^0.0.34",
     "prettier": "^2.7.1",
-    "typescript": "^4.7.4"
+    "roblox-ts": "^1.3.3",
+    "typescript": "^4.7.4",
+    "typescript-transform-paths": "^3.3.1"
   },
   "dependencies": {
     "@docusaurus/core": "^2.0.0-rc.1",
     "@docusaurus/preset-classic": "^2.0.0-rc.1"
   },
-  "files": ["src"]
+  "files": [
+    "src"
+  ]
 }

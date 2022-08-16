@@ -178,7 +178,7 @@ end
 	The equivalent of :FireServer().
 	
 	```lua
-	local Bridge = ClientBridge.new("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	
 	Bridge:Fire("Hello", "world!")
 	```
@@ -196,6 +196,19 @@ function ClientBridge:Fire(...: any)
 	})
 end
 
+--[=[
+	Invokes the server for a response. Promise wrapper over :InvokeServerAsync()
+	
+	```lua
+	local Bridge = BridgeNet.CreateBridge("Remote")
+	
+	local data = Bridge:InvokeServerAsync("whats 2+2?")
+	print(data) -- prints "4"
+	```
+	
+	@param ... any
+	@return ...any
+]=]
 function ClientBridge:InvokeServerAsync(...: any)
 	if self._id == nil then
 		self._id = serdeLayer.WhatIsThis(self._name, "compressed")
@@ -221,7 +234,21 @@ function ClientBridge:InvokeServerAsync(...: any)
 	return table.unpack(response)
 end
 
-function ClientBridge:InvokeServer(...)
+--[=[
+	Invokes the server for a response. Promise wrapper over :InvokeServerAsync()
+	
+	```lua
+	local Bridge = BridgeNet.CreateBridge("Remote")
+	
+	local data = Bridge:InvokeServer("this text will be returned but with something added at the end!"):andThen(function(string)
+		print(string) -- Prints "this text will be returned but with something added at the end!something"
+	end)
+	```
+	
+	@param ... any
+	@return Promise
+]=]
+function ClientBridge:InvokeServer(...: any)
 	local args = table.pack(...)
 	return Promise.new(function(resolve)
 		resolve(self:InvokeServerAsync(table.unpack(args))) -- weirdest hack i've ever done, but it errored if i didn't do this???
@@ -232,7 +259,7 @@ end
 	Creates a connection. Can be disconnected using :Disconnect().
 	
 	```lua
-	local Bridge = ClientBridge.new("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	
 	Bridge:Connect(function(text)
 		print(text)
@@ -271,7 +298,7 @@ end
 	Gets the ClientBridge's name.
 	
 	```lua
-	local Bridge = ClientBridge.new("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	
 	print(Bridge:GetName()) -- Prints "Remote"
 	```
@@ -286,7 +313,7 @@ end
 	Creates a connection, when fired it will disconnect.
 	
 	```lua
-	local Bridge = ClientBridge.new("ConstantlyFiringText")
+	local Bridge = BridgeNet.CreateBridge("ConstantlyFiringText")
 	
 	Bridge:Connect(function(text)
 		print(text) -- Fires multiple times

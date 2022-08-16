@@ -1,6 +1,12 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
+# 1.6.5-beta
+- Fixed invokes
+- Added documentation for invokes
+- Added .CreateBridgesFromDictionary()
+- Significantly improved / fixed roblox-ts typings
+
 # 1.5.5-beta
 - Added "RemoteFunction"-type API
 	- Added ServerBridge:OnInvoke(function() end)

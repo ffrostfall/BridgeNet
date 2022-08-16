@@ -11,8 +11,16 @@ type StartOptions = {
 	[DefaultReceive]: number | null;
 	[DefaultSend]: number | null;
 	[PrintRemotes]: boolean | null;
-	[ReceiveLogsFunction]: (...any) => undefined | null;
+	[ReceiveLogsFunction]: (...args: Array<unknown>) => undefined | null;
 };
+
+type BridgeDictionary = {
+	string: [BridgeDictionary] | ClientBridge.CreateBridge | ServerBridge.CreateBridge
+}
+
+type StringDictionary = {
+	string: string | StringDictionary
+}
 
 interface BridgeNet {
 	GetReceiveRate: rateManager.GetReceiveRate;
@@ -26,7 +34,7 @@ interface BridgeNet {
 
 	DictionaryToTable: serdeLayer.DictionaryToTable;
 
-	CreateBridgesFromDictionary: (inputObject: {string: ClientBridge.CreateBridge | ServerBridge.CreateBridge | { any: any }}) => { string: {string: {any: any}} | ClientBridge.CreateBridge | ServerBridge.CreateBridge };
+	CreateBridgesFromDictionary: (StringDictionary) => BridgeDictionary
 	CreateBridge: (name: string) => ClientBridge.CreateBridge | ServerBridge.CreateBridge;
 	
 	Start: (options: StartOptions) => undefined;
