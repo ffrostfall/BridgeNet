@@ -46,8 +46,7 @@ function ClientBridge._start(config)
 
 	Invoke = serdeLayer.WhatIsThis("Invoke", "compressed")
 	InvokeReply = serdeLayer.WhatIsThis("InvokeReply", "compressed")
-	print(Invoke)
-	print(InvokeReply)
+
 	local lastSend = 0
 	local lastReceive = 0
 	RunService.Heartbeat:Connect(function()
