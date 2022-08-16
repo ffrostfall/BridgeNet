@@ -1,6 +1,6 @@
 {
-  "name": "bridgenet",
-  "tree": {
-    "$path": "out"
-  }
+	"name": "BridgeNet",
+	"tree": {
+		"$path": "src"
+	}
 }

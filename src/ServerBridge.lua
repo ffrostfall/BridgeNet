@@ -27,6 +27,9 @@ local BridgeObjects = {}
 local lastSend: number = 0
 local lastReceive: number = 0
 
+local Invoke
+local InvokeReply
+
 local activeConfig
 
 --[=[
@@ -49,6 +52,9 @@ function ServerBridge._start(config: config): nil
 	local RemoteEvent = Instance.new("RemoteEvent")
 	RemoteEvent.Name = "RemoteEvent"
 	RemoteEvent.Parent = ReplicatedStorage
+
+	Invoke = serdeLayer.CreateIdentifier("Invoke")
+	InvokeReply = serdeLayer.CreateIdentifier("InvokeReply")
 
 	rateManager.SetSendRate(activeConfig.send_default_rate)
 	rateManager.SetReceiveRate(activeConfig.receive_default_rate)
@@ -76,35 +82,64 @@ function ServerBridge._start(config: config): nil
 					activeConfig.receive_function(serdeLayer.WhatIsThis(v.remote, "id"), v.plrs, table.unpack(v.args))
 				end
 
-				if v.plrs == "all" then
-					local tbl = {}
-					table.insert(tbl, v.remote)
-					for _, k in ipairs(v.args) do
-						table.insert(tbl, k)
-					end
-					table.insert(toSendAll, tbl)
-				elseif typeof(v.plrs) == "table" then
-					for _, l in ipairs(v.plrs) do
-						if toSendPlayers[l] == nil then
-							toSendPlayers[l] = {}
-						end
+				if not v.invokeReply then
+					if v.plrs == "all" then
 						local tbl = {}
+
 						table.insert(tbl, v.remote)
-						for _, m in ipairs(v.args) do
-							table.insert(tbl, m)
+
+						for _, k in ipairs(v.args) do
+							table.insert(tbl, k)
 						end
-						table.insert(toSendPlayers[l], tbl)
+
+						table.insert(toSendAll, tbl)
+					elseif typeof(v.plrs) == "table" then
+						for _, l in ipairs(v.plrs) do
+							if toSendPlayers[l] == nil then
+								toSendPlayers[l] = {}
+							end
+
+							local tbl = {}
+
+							table.insert(tbl, v.remote)
+
+							for _, m in ipairs(v.args) do
+								table.insert(tbl, m)
+							end
+
+							table.insert(toSendPlayers[l], tbl)
+						end
+					else
+						if toSendPlayers[v.plrs] == nil then
+							toSendPlayers[v.plrs] = {}
+						end
+
+						local tbl = {}
+
+						table.insert(tbl, v.remote)
+
+						for _, n in ipairs(v.args) do
+							table.insert(tbl, n)
+						end
+
+						table.insert(toSendPlayers[v.plrs], tbl)
 					end
-				else
+				elseif v.invokeReply then
 					if toSendPlayers[v.plrs] == nil then
 						toSendPlayers[v.plrs] = {}
 					end
+
 					local tbl = {}
+
 					table.insert(tbl, v.remote)
-					for _, n in ipairs(v.args) do
-						table.insert(tbl, n)
+					table.insert(tbl, InvokeReply)
+					table.insert(tbl, v.uuid)
+
+					for _, k in ipairs(v.args) do
+						table.insert(tbl, k)
 					end
-					table.insert(toSendPlayers[v.plrs], tbl)
+
+					table.insert(toSendAll, tbl)
 				end
 			end
 
@@ -127,16 +162,33 @@ function ServerBridge._start(config: config): nil
 					--lagging out the server over time with a pcall that warns every frame.
 					continue
 				end
+				if v.args[1] == Invoke then
+					if obj._onInvoke ~= nil then
+						task.spawn(function()
+							local args = v.args
+							local uuid = args[2]
 
-				if activeConfig.receive_logging ~= nil then
-					activeConfig.receive_logging(v.plr, table.unpack(v.args))
-				end
+							table.remove(args, 1)
+							table.remove(args, 2)
+							table.insert(SendQueue, {
+								plrs = v.plr,
+								remote = obj._id,
+								uuid = uuid,
+								args = { obj._onInvoke(unpack(v.args)) },
+							})
+						end)
+					end
+				else
+					if activeConfig.receive_logging ~= nil then
+						activeConfig.receive_logging(v.plr, table.unpack(v.args))
+					end
 
-				for callback, timesConnected in pairs(obj._connections) do
-					-- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
-					-- also for error protection
-					for _ = 1, timesConnected do
-						task.spawn(callback, v.plr, unpack(v.args))
+					for callback, timesConnected in pairs(obj._connections) do
+						-- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
+						-- also for error protection
+						for _ = 1, timesConnected do
+							task.spawn(callback, v.plr, unpack(v.args))
+						end
 					end
 				end
 			end
@@ -175,6 +227,7 @@ function ServerBridge.new(remoteName: string)
 
 	self._name = remoteName
 
+	self._onInvoke = nil
 	self._connections = {}
 	self._rateInThisMinute = {
 		num = 0,
@@ -227,6 +280,10 @@ function ServerBridge:FireTo(plr: Player, ...: any)
 		args = args,
 	}
 	table.insert(SendQueue, toSend)
+end
+
+function ServerBridge:OnInvoke(callback: (...any) -> nil)
+	self._onInvoke = callback
 end
 
 --[=[
@@ -498,10 +555,25 @@ function ServerBridge:Connect(func: (...any) -> nil)
 				end
 			end
 		end,
-		Connected = true
+		Connected = true,
 	}
 
 	return connection
+end
+
+--[[
+	Gets the ServerBridge's name.
+	
+	```lua
+	local Bridge = ServerBridge.new("Remote")
+	
+	print(Bridge:GetName()) -- Prints "Remote"
+	```
+	
+	@return string
+]]
+function ServerBridge:GetName()
+	return self._name
 end
 
 --[=[

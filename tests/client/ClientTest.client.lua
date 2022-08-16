@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local BridgeNet = require(ReplicatedStorage:WaitForChild("BridgeNet"))
+local BridgeNet = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("BridgeNet"))
 
 BridgeNet.Start({
 	[BridgeNet.DefaultSend] = 60,
@@ -19,4 +19,7 @@ end)
 
 while task.wait(1) do
 	Object:Fire("Hello", "world", "testing!")
+	task.spawn(function()
+		print(Object:InvokeServerAsync("testing one two three", "yeah"))
+	end)
 end

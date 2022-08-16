@@ -1,6 +1,15 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
+# 1.5.5-beta
+- Added "RemoteFunction"-type API
+	- Added ServerBridge:OnInvoke(function() end)
+	- Added ClientBridge:InvokeServerAsync(), yields.
+	- Added ClientBridge:InvokeServer(), returns a promise instead of yielding.
+- Refactored some code to be better-organized.
+- Added Promise as a dependency
+- Added GoodSignal as a dependency
+
 # 1.4.5-beta
 - Ported to typescript!
 

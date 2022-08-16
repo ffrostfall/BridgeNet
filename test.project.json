@@ -1,27 +1,28 @@
 {
-  "name": "BridgeNet",
-  "tree": {
-	"$className": "DataModel",
-	"ReplicatedStorage": {
-		"$className": "ReplicatedStorage",
-		"BridgeNet": {
-			"$path": "src"
+	"name": "BridgeNet",
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"Packages": {
+				"$path": "Packages",
+				"BridgeNet": {
+					"$path": "src"
+				}
+			}
+		},
+		"ServerScriptService": {
+			"ServerTest": {
+				"$path": "tests/server"
+			}
+		},
+		"StarterPlayer": {
+			"StarterPlayerScripts": {
+				"ClientTest": {
+					"$path": "tests/client"
+				}
+			},
+			"$className": "StarterPlayer"
 		}
-	},
-    "ServerScriptService": {
-      "$className": "ServerScriptService",
-      "server": {
-        "$path": "tests/server"
-      }
-    },
-    "StarterPlayer": {
-      "$className": "StarterPlayer",
-      "StarterPlayerScripts": {
-        "$className": "StarterPlayerScripts",
-        "client": {
-          "$path": "tests/client"
-        }
-      }
-    }
-  }
+	}
 }

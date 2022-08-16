@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local BridgeNet = require(ReplicatedStorage:WaitForChild("BridgeNet"))
+local BridgeNet = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("BridgeNet"))
 
 BridgeNet.Start({
 	[BridgeNet.DefaultSend] = 60,
@@ -16,6 +16,11 @@ TestRemote.Parent = ReplicatedStorage
 
 Object:Connect(function(plr, arg1, arg2, arg3)
 	print(plr, arg1, arg2, arg3)
+end)
+
+Object:OnInvoke(function(plr, arg1, arg2)
+	print(plr)
+	return "it works!", "yeah."
 end)
 
 while task.wait(1) do -- For normal tests, do task.wait

@@ -1,9 +1,11 @@
 [package]
 name = "ffrostflame/bridgenet"
-version = "1.4.5"
+version = "1.5.5"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 description = "A feature-packed networking library oriented towards optimization and ease of usage."
 license = "MIT"
 
 [dependencies]
+GoodSignal = "stravant/goodsignal@0.1.1"
+Promise = "evaera/promise@3.2.1"
