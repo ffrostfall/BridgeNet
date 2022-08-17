@@ -7,5 +7,5 @@ description = "A feature-packed networking library oriented towards optimization
 license = "MIT"
 
 [dependencies]
-GoodSignal = "stravant/goodsignal@0.1.1"
-Promise = "evaera/promise@3.2.1"
+GoodSignal = "stravant/goodsignal@0.2.1"
+Promise = "evaera/promise@4.0.0"

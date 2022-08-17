@@ -227,7 +227,7 @@ function ServerBridge._start(config: config): nil
 	return nil
 end
 
-function ServerBridge.new(remoteName: string)
+function ServerBridge.new(remoteName: string, middlewareFunctions: { (() -> nil, ...any) -> nil })
 	assert(type(remoteName) == "string", "[BridgeNet] Remote name must be a string")
 
 	local found = ServerBridge.from(remoteName)
@@ -241,18 +241,17 @@ function ServerBridge.new(remoteName: string)
 
 	self._onInvoke = nil
 	self._connections = {}
+
+	self._rateLimit = nil
+	self._rateHandler = nil
 	self._rateInThisMinute = {
 		num = 0,
 		min = 0,
 	}
-	self._rateLimit = nil
-	self._rateHandler = nil
 
 	self._id = serdeLayer.CreateIdentifier(remoteName)
 
-	self._middleware = function(connectCallback, playerCalling, ...)
-		connectCallback(playerCalling, ...)
-	end
+	self._middlewareFunctions = {}
 
 	BridgeObjects[self._name] = self
 	return self
@@ -541,27 +540,12 @@ end
 		end
 end]]
 
---[[
-	Sets the middleware function to be used. You must call the connection callback or it won't run.
-	Keep in mind, even if the middleware says not to run the connections, it will still affect rate limits.
+--[=[
 	
-	```lua
-	local Bridge = BridgeNet.CreateBridge("Remote")
-	Bridge:SetMiddleware(function(connectionCallback, playerCalling, ...)
-		if playerCalling:GetRankInGroup(1234567) >= 60 then
-			connectionCallback(...)
-		else
-			return
-		end
-	end)
-	```
-	
-	@param func (connectCallback: () -> nil, playerCalling: Player, ...) -> nil
-	@return nil
-]]
---[[function ServerBridge:SetMiddleware(func: (connectCallback: () -> nil, playerCalling: Player) -> nil) -- for some reason varargs don't play nicely with types
-	self._middleware = func
-end]]
+]=]
+function ServerBridge:SetMiddleware(middlewareTable: { (...any) -> nil })
+	self._middlewareFunctions = middlewareTable
+end
 
 --[=[
 	Creates a connection, when fired it will disconnect.
@@ -631,7 +615,7 @@ end
 	Gets the ServerBridge's name.
 	
 	```lua
-	local Bridge = ServerBridge.new("Remote")
+	local Bridge = BridgeNet.CreateBridge("Remote")
 	
 	print(Bridge:GetName()) -- Prints "Remote"
 	```
