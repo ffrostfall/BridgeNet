@@ -4,6 +4,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local BridgeNet = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("BridgeNet"))
 
 BridgeNet.Start({
+	[BridgeNet.ReceiveLogFunction] = function(remoteName, ...)
+		print(table.pack(...))
+	end,
+	[BridgeNet.SendLogFunction] = function(remoteName, ...)
+		print(table.pack(...))
+	end,
 	[BridgeNet.DefaultSend] = 60,
 	[BridgeNet.DefaultReceive] = 60,
 })
@@ -23,7 +29,7 @@ Object:OnInvoke(function(plr, arg1, arg2)
 	return "it works!", "yeah."
 end)
 
-print(BridgeNet.CreateBridgesFromDictionary({
+local test = BridgeNet.CreateBridgesFromDictionary({
 	Something = "Key1",
 	SomethingB = "Key2",
 	IsItDeep = {
@@ -33,7 +39,22 @@ print(BridgeNet.CreateBridgesFromDictionary({
 			TestB = "TestB",
 		},
 	},
-}))
+})
+
+Object:SetMiddleware({
+	function(plr, arg1, arg2, arg3)
+		print(plr)
+		return arg1, arg2, arg3
+	end,
+	function(arg1, arg2, arg3)
+		print("1")
+		return arg1, arg2, arg3
+	end,
+	function(arg1, arg2, arg3)
+		print("2")
+		return arg1, arg2, arg3
+	end,
+})
 
 while task.wait(1) do -- For normal tests, do task.wait
 	Object:FireTo(Players:GetPlayers()[1], "Received: Fire", "Test")

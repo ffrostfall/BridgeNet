@@ -1,2 +1,2 @@
 local Symbol = require(script.Parent.Parent.Symbol)
-return Symbol.named("SendLogsFunction")
+return Symbol.named("SendLogFunction")

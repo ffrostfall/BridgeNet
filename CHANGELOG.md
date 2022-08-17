@@ -1,6 +1,19 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
+# 1.8.5-beta
+- Added better profiling
+- Added ExceededTimeLimit signal (Unused for now)
+- Added InternalError signal
+- Added server-sided middleware (no typescript support yet, sorry ):
+	- Added :SetOutgoingMiddleware()
+	- Added :SetIncomingMiddleware()
+	- Middleware will be added to the client soon enough
+- Added ``t`` as a dependency
+- ReceiveLogFunction and SendLogFunction are now stable and ready to be used
+- Fixed symbols for roblox-ts
+- Improved typings for Luau
+
 # 1.7.5-beta
 - Improved typings for both ts and luau
 - Re-added :Once()

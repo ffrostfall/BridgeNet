@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 
 local serdeLayer = require(script.Parent.serdeLayer)
 local rateManager = require(script.Parent.rateManager)
+local Signal = require(script.Parent.Parent.GoodSignal)
 
 type queueSendPacket = { plrs: string | Player | { Player }, remote: string, args: { any } }
 type queueReceivePacket = { plr: Player, remote: string, args: { any } }
@@ -28,6 +29,9 @@ local Invoke
 local InvokeReply
 
 local activeConfig
+
+local InternalError = Signal.new()
+local ExceededTimeLimit = Signal.new()
 
 --[=[
 	@class ServerBridge
@@ -58,6 +62,8 @@ function ServerBridge._start(config: config): nil
 
 	RunService.Heartbeat:Connect(function()
 		debug.profilebegin("ServerBridge")
+		local start = os.clock()
+
 		local sendRate = rateManager.GetSendRate()
 		local receiveRate = rateManager.GetReceiveRate()
 
@@ -151,7 +157,6 @@ function ServerBridge._start(config: config): nil
 
 		if (time() - lastReceive) >= receiveRate then
 			lastReceive = time()
-
 			for _, v in ipairs(ReceiveQueue) do
 				local obj = BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]
 				if obj == nil then
@@ -191,6 +196,7 @@ function ServerBridge._start(config: config): nil
 						})
 					end
 				else
+					debug.profilebegin(string.format("connections_%s", obj._name))
 					if activeConfig.receive_logging ~= nil then
 						activeConfig.receive_logging(v.plr, table.unpack(v.args))
 					end
@@ -199,12 +205,35 @@ function ServerBridge._start(config: config): nil
 						-- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
 						-- also for error protection
 						for _ = 1, timesConnected do
-							task.spawn(callback, v.plr, unpack(v.args))
+							if obj._middlewareFunctions == nil then
+								callback(v.plr, table.unpack(v.args))
+							else
+								task.spawn(function()
+									local result
+									for _, func in ipairs(obj._middlewareFunctions) do
+										if result then
+											local potential = { func(result) }
+											if #potential == 0 then
+												continue
+											end
+											result = { func(table.unpack(result)) }
+										else
+											result = { func(table.unpack(v.args)) }
+										end
+									end
+									callback(v.plr, table.unpack(result))
+								end)
+							end
 						end
 					end
+					debug.profileend()
 				end
 			end
 			table.clear(ReceiveQueue)
+		end
+
+		if (os.clock() - start) > 0.001 then
+			ExceededTimeLimit:Fire(os.clock() - start)
 		end
 
 		debug.profileend()
@@ -227,7 +256,7 @@ function ServerBridge._start(config: config): nil
 	return nil
 end
 
-function ServerBridge.new(remoteName: string) -- middlewareFunctions: { (() -> nil, ...any) -> nil }
+function ServerBridge.new(remoteName: string, middlewareFunctions: { (() -> nil, ...any) -> nil })
 	assert(type(remoteName) == "string", "[BridgeNet] Remote name must be a string")
 
 	local found = ServerBridge.from(remoteName)
@@ -251,7 +280,7 @@ function ServerBridge.new(remoteName: string) -- middlewareFunctions: { (() -> n
 
 	self._id = serdeLayer.CreateIdentifier(remoteName)
 
-	--self._middlewareFunctions = middlewareFunctions or {}
+	self._middlewareFunctions = middlewareFunctions or {}
 
 	BridgeObjects[self._name] = self
 	return self
@@ -540,12 +569,9 @@ end
 		end
 end]]
 
---[=[
-	
-]=]
---function ServerBridge:SetMiddleware(middlewareTable: { (...any) -> nil })
--- self._middlewareFunctions = middlewareTable
--- end
+function ServerBridge:SetMiddleware(middlewareTable: { (...any) -> nil })
+	self._middlewareFunctions = middlewareTable
+end
 
 --[=[
 	Creates a connection, when fired it will disconnect.
@@ -651,6 +677,6 @@ function ServerBridge:Destroy()
 	setmetatable(self, nil)
 end
 
-export type ServerObject = typeof(setmetatable({}, ServerBridge))
+export type ServerObject = typeof(ServerBridge.new(""))
 
 return ServerBridge

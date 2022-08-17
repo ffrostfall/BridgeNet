@@ -9,11 +9,11 @@ local isServer = RunService:IsServer()
 local hasStarted = false
 
 type ClientBridgeDictionary = {
-	[string]: ClientBridgeDictionary | ClientBridge.ClientObject,
+	[string]: ClientBridge.ClientObject,
 }
 
 type ServerBridgeDictionary = {
-	[string]: ServerBridgeDictionary | ServerBridge.ServerObject,
+	[string]: ServerBridge.ServerObject,
 }
 
 --[=[
@@ -103,8 +103,8 @@ type ServerBridgeDictionary = {
 local DefaultReceive = require(script.ConfigSymbols.DefaultReceive)
 local DefaultSend = require(script.ConfigSymbols.DefaultSend)
 local PrintRemotes = require(script.ConfigSymbols.PrintRemotes)
-local SendLogFunction = require(script.ConfigSymbols.SendLogsFunction)
-local ReceiveLogFunction = require(script.ConfigSymbols.ReceiveLogsFunction)
+local SendLogFunction = require(script.ConfigSymbols.SendLogFunction)
+local ReceiveLogFunction = require(script.ConfigSymbols.ReceiveLogFunction)
 
 return {
 	CreateIdentifier = serdeLayer.CreateIdentifier,
@@ -142,7 +142,7 @@ return {
 			return ClientBridge.new(str)
 		end
 	end,
-	CreateBridgesFromDictionary = function(tbl: { [any]: string })
+	CreateBridgesFromDictionary = function(tbl: { [any]: string | {} })
 		local new
 		if isServer then
 			new = ServerBridge.new :: ServerBridge.ServerObject
@@ -161,9 +161,11 @@ return {
 			return toReturn
 		end
 
-		return recursivelyAdd(tbl)
+		return recursivelyAdd(tbl) :: {
+			[string]: ServerBridge.ServerObject | ClientBridge.ClientObject,
+		}
 	end,
-	Start = function(config: { [any]: number })
+	Start = function(config: { [any]: number | () -> any })
 		local prefix = if RunService:IsServer() then "SERVER" else "CLIENT"
 
 		if hasStarted then

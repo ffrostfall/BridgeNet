@@ -3,6 +3,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local BridgeNet = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("BridgeNet"))
 
 BridgeNet.Start({
+	[BridgeNet.ReceiveLogFunction] = function(remoteName, ...)
+		print(table.pack(...))
+	end,
+	[BridgeNet.SendLogFunction] = function(remoteName, ...)
+		print(table.pack(...))
+	end,
 	[BridgeNet.DefaultSend] = 60,
 	[BridgeNet.DefaultReceive] = 60,
 })

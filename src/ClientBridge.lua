@@ -360,6 +360,6 @@ function ClientBridge:Destroy()
 	setmetatable(self, nil)
 end
 
-export type ClientObject = typeof(setmetatable({}, ClientBridge))
+export type ClientObject = typeof(ClientBridge.new(""))
 
 return ClientBridge
