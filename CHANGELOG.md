@@ -1,9 +1,10 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
-# 1.6.6-beta
+# 1.7.5-beta
 - Improved typings for both ts and luau
 - Re-added :Once()
+- Updated dependency versions
 
 # 1.6.5-beta
 - Fixed invokes

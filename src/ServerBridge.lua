@@ -227,7 +227,7 @@ function ServerBridge._start(config: config): nil
 	return nil
 end
 
-function ServerBridge.new(remoteName: string, middlewareFunctions: { (() -> nil, ...any) -> nil })
+function ServerBridge.new(remoteName: string) -- middlewareFunctions: { (() -> nil, ...any) -> nil }
 	assert(type(remoteName) == "string", "[BridgeNet] Remote name must be a string")
 
 	local found = ServerBridge.from(remoteName)
@@ -251,7 +251,7 @@ function ServerBridge.new(remoteName: string, middlewareFunctions: { (() -> nil,
 
 	self._id = serdeLayer.CreateIdentifier(remoteName)
 
-	self._middlewareFunctions = {}
+	--self._middlewareFunctions = middlewareFunctions or {}
 
 	BridgeObjects[self._name] = self
 	return self
@@ -543,9 +543,9 @@ end]]
 --[=[
 	
 ]=]
-function ServerBridge:SetMiddleware(middlewareTable: { (...any) -> nil })
-	self._middlewareFunctions = middlewareTable
-end
+--function ServerBridge:SetMiddleware(middlewareTable: { (...any) -> nil })
+-- self._middlewareFunctions = middlewareTable
+-- end
 
 --[=[
 	Creates a connection, when fired it will disconnect.
