@@ -564,6 +564,32 @@ end]]
 end]]
 
 --[=[
+	Creates a connection, when fired it will disconnect.
+	
+	```lua
+	local Bridge = BridgeNet.CreateBridge("ConstantlyFiringText")
+	
+	Bridge:Connect(function(text)
+		print(text) -- Fires multiple times
+	end)
+	
+	Bridge:Once(function(text)
+		print(text) -- Fires once
+	end)
+	```
+	
+	@param func function
+	@return nil
+]=]
+function ServerBridge:Once(func: (...any) -> nil)
+	local connection
+	connection = self:Connect(function(...)
+		connection:Disconnect()
+		func(...)
+	end)
+end
+
+--[=[
 	Creates a connection.
 	
 	```lua

@@ -309,7 +309,7 @@ function ClientBridge:GetName()
 	return self._name
 end
 
---[[
+--[=[
 	Creates a connection, when fired it will disconnect.
 	
 	```lua
@@ -326,6 +326,7 @@ end
 	
 	@param func function
 	@return nil
+]=]
 function ClientBridge:Once(func: (...any) -> nil)
 	local connection
 	connection = self:Connect(function(...)
@@ -333,7 +334,6 @@ function ClientBridge:Once(func: (...any) -> nil)
 		func(...)
 	end)
 end
-]]
 
 --[=[
 	Destroys the ClientBridge object. Doesn't destroy the RemoteEvent, or destroy the identifier. It doesn't send anything to the server. Just destroys the client sided object.
