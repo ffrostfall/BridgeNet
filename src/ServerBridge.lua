@@ -81,8 +81,8 @@ function ServerBridge._start(config: config): nil
 			local toSendAll = {}
 			local toSendPlayers = {}
 			for _, v in ipairs(SendQueue) do
-				if activeConfig.receive_function ~= nil then
-					activeConfig.receive_function(serdeLayer.WhatIsThis(v.remote, "id"), v.plrs, table.unpack(v.args))
+				if activeConfig.send_function ~= nil then
+					activeConfig.send_function(serdeLayer.WhatIsThis(v.remote, "id"), v.plrs, table.unpack(v.args))
 				end
 
 				if not v.invokeReply then
