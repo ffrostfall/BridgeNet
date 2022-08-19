@@ -4,10 +4,10 @@ local BridgeNet = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChil
 
 BridgeNet.Start({
 	[BridgeNet.ReceiveLogFunction] = function(remoteName, ...)
-		print(table.pack(...))
+		print(...)
 	end,
 	[BridgeNet.SendLogFunction] = function(remoteName, ...)
-		print(table.pack(...))
+		print(...)
 	end,
 	[BridgeNet.DefaultSend] = 60,
 	[BridgeNet.DefaultReceive] = 60,
@@ -19,8 +19,8 @@ local TestRemote = ReplicatedStorage:WaitForChild("TestRemote")
 
 TestRemote.OnClientEvent:Connect(function() end)
 
-Object:Connect(function(arg1, arg2, arg3)
-	print(arg1, arg2, arg3) -- Comment this out when stress testing. It'll lag heavily and produce incorrect results
+Object:Connect(function(...)
+	print(...) -- Comment this out when stress testing. It'll lag heavily and produce incorrect results
 end)
 
 while task.wait(1) do

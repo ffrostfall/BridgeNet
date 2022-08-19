@@ -5,10 +5,10 @@ local BridgeNet = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChil
 
 BridgeNet.Start({
 	[BridgeNet.ReceiveLogFunction] = function(remoteName, ...)
-		print(table.pack(...))
+		print(...)
 	end,
 	[BridgeNet.SendLogFunction] = function(remoteName, ...)
-		print(table.pack(...))
+		print(...)
 	end,
 	[BridgeNet.DefaultSend] = 60,
 	[BridgeNet.DefaultReceive] = 60,
@@ -20,8 +20,8 @@ local TestRemote = Instance.new("RemoteEvent")
 TestRemote.Name = "TestRemote"
 TestRemote.Parent = ReplicatedStorage
 
-Object:Connect(function(plr, arg1, arg2, arg3)
-	print(plr, arg1, arg2, arg3)
+Object:Connect(function(plr, ...)
+	print(plr, ...)
 end)
 
 Object:OnInvoke(function(plr, arg1, arg2)
@@ -42,24 +42,23 @@ local test = BridgeNet.CreateBridgesFromDictionary({
 })
 
 Object:SetMiddleware({
-	function(plr, arg1, arg2, arg3)
-		print(plr)
-		return arg1, arg2, arg3
+	function(...)
+		return ...
 	end,
-	function(arg1, arg2, arg3)
+	function(...)
 		print("1")
-		return arg1, arg2, arg3
+		return ...
 	end,
-	function(arg1, arg2, arg3)
+	function(...)
 		print("2")
-		return arg1, arg2, arg3
+		return ...
 	end,
 })
 
 while task.wait(1) do -- For normal tests, do task.wait
-	Object:FireTo(Players:GetPlayers()[1], "Received: Fire", "Test")
-	print(Object:FireAllInRange(Vector3.new(0, 0, 0), 50, "Received: FireAllInRange"))
-	Object:FireAll("Received: FireAll", "Test")
+	Object:FireTo(Players:GetPlayers()[1], "Received: Fire", "Test", "Test2")
+	print(Object:FireAllInRange(Vector3.new(0, 0, 0), 50, "Received: FireAllInRange", " Client within range! "))
+	Object:FireAll("Received: FireAll", "Test", "Test2")
 
 	-- When stress testing, set the task.wait(1) to task.wait().
 	--[[for i = 1, 200 do
