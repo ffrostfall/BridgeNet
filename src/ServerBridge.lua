@@ -210,18 +210,19 @@ function ServerBridge._start(config: config): nil
 							else
 								task.spawn(function()
 									local result
-									for _, func in ipairs(obj._middlewareFunctions) do
+									for _, func in obj._middlewareFunctions do
 										if result then
-											local potential = { func(result) }
+											local potential = { func(table.unpack(result)) }
 											if #potential == 0 then
 												continue
 											end
-											result = { func(table.unpack(result)) }
+											result = potential
 										else
 											result = { func(table.unpack(v.args)) }
 										end
 									end
-									callback(v.plr, table.unpack(result))
+
+									callback(v.plr, result)
 								end)
 							end
 						end
