@@ -106,6 +106,13 @@ local PrintRemotes = require(script.ConfigSymbols.PrintRemotes)
 local SendLogFunction = require(script.ConfigSymbols.SendLogFunction)
 local ReceiveLogFunction = require(script.ConfigSymbols.ReceiveLogFunction)
 
+script.Destroying:Connect(function()
+	serdeLayer._destroy()
+	if isServer then
+		ServerBridge._destroy()
+	end
+end)
+
 return {
 	CreateIdentifier = serdeLayer.CreateIdentifier,
 	WhatIsThis = serdeLayer.WhatIsThis,

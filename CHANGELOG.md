@@ -17,6 +17,7 @@ Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 - Fixed symbols for roblox-ts
 - Improved typings for Luau
 - Better error handling
+- Added support for hot-reloading..?
 
 # 1.7.5-beta
 - Improved typings for both ts and luau

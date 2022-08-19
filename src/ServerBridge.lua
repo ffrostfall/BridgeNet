@@ -25,6 +25,8 @@ local BridgeObjects = {}
 local lastSend: number = 0
 local lastReceive: number = 0
 
+local RemoteEvent
+
 local Invoke
 local InvokeReply
 
@@ -50,7 +52,7 @@ ServerBridge.__index = ServerBridge
 function ServerBridge._start(config: config): nil
 	activeConfig = config
 
-	local RemoteEvent = Instance.new("RemoteEvent")
+	RemoteEvent = Instance.new("RemoteEvent")
 	RemoteEvent.Name = "RemoteEvent"
 	RemoteEvent.Parent = ReplicatedStorage
 
@@ -254,6 +256,10 @@ function ServerBridge._start(config: config): nil
 	end)
 
 	return nil
+end
+
+function ServerBridge._destroy()
+	RemoteEvent:Destroy()
 end
 
 function ServerBridge.new(remoteName: string, middlewareFunctions: { (() -> nil, ...any) -> nil })
