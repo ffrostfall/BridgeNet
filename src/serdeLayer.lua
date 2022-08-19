@@ -89,12 +89,12 @@ end
 	@return string
 ]=]
 function serdeLayer.CreateIdentifier(id: string): string
-	assert(RunService:IsServer(), "You cannot create identifiers on the client.")
-	assert(type(id) == "string", "ID must be a string")
-
 	if sendDict[id] then
 		return sendDict[id]
 	end
+
+	assert(RunService:IsServer(), "You cannot create identifiers on the client.")
+	assert(type(id) == "string", "ID must be a string")
 
 	if numOfSerials > 65536 then
 		error("Over the identification cap: " .. id)
@@ -112,6 +112,14 @@ function serdeLayer.CreateIdentifier(id: string): string
 	return StringValue.Value
 end
 
+function serdeLayer.WaitForIdentifier(id: string): string
+	assert(not RunService:IsServer(), "WaitForIdentifier can only be called from the client!")
+
+	repeat
+		task.wait()
+	until sendDict[id] ~= nil
+	return sendDict[id]
+end
 --[=[
 	Creates an identifier and associates it with a compressed value. This is shared between the server and the client.
 

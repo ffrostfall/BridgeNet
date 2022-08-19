@@ -165,6 +165,29 @@ return {
 			[string]: ServerBridge.ServerObject | ClientBridge.ClientObject,
 		}
 	end,
+	CreateIdentifiersFromDictionary = function(tbl: { [any]: string | {} })
+		local new
+		if isServer then
+			new = serdeLayer.CreateIdentifier
+		else
+			new = serdeLayer.WhatIsThis
+		end
+		local function recursivelyAdd(tableTo: { [any]: string })
+			local toReturn = {}
+			for k, v in pairs(tableTo) do
+				if typeof(v) ~= "table" then
+					toReturn[k] = new(v)
+				else
+					toReturn[k] = recursivelyAdd(v)
+				end
+			end
+			return toReturn
+		end
+
+		return recursivelyAdd(tbl) :: {
+			[string]: string | { [string]: string },
+		}
+	end,
 	Start = function(config: { [any]: number | () -> any })
 		local prefix = if RunService:IsServer() then "SERVER" else "CLIENT"
 

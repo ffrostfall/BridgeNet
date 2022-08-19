@@ -4,15 +4,15 @@ registry = "test"
 
 [[package]]
 name = "evaera/promise"
-version = "3.2.1"
+version = "4.0.0"
 dependencies = []
 
 [[package]]
 name = "ffrostflame/bridgenet"
-version = "1.5.5"
-dependencies = [["GoodSignal", "stravant/goodsignal@0.1.1"], ["Promise", "evaera/promise@3.2.1"]]
+version = "1.7.5"
+dependencies = [["GoodSignal", "stravant/goodsignal@0.2.1"], ["Promise", "evaera/promise@4.0.0"]]
 
 [[package]]
 name = "stravant/goodsignal"
-version = "0.1.1"
+version = "0.2.1"
 dependencies = []
