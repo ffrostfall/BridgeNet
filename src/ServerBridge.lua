@@ -576,8 +576,47 @@ end
 		end
 end]]
 
+--[=[
+	Sets the Bridge's middleware functions. Any function which returns nil will drop the remote request completely. Overrides existing middleware.
+	
+	Allows you to change arguments or drop remote calls.
+	```lua
+	Object:SetMiddleware({
+		function(...) -- Called first
+			return ...
+		end,
+		function(...) -- Called second
+			print("1")
+			return ...
+		end,
+		function(...) -- Called third
+			print("2")
+			return ...
+		end,
+	})
+	```
+	
+	@param middlewareTable { (...any) -> nil }
+	@return nil
+]=]
 function ServerBridge:SetMiddleware(middlewareTable: { (...any) -> nil })
 	self._middlewareFunctions = middlewareTable
+end
+
+--[=[
+	Inserts a function into the bridge's middleware table.
+	
+	```lua
+	Object:AddMiddleware(function(...) -- Accepts the last middleware function's arguments
+		return ...
+	end)
+	```
+	
+	@param func (...any) -> nil
+	@return nil
+]=]
+function ServerBridge:AddMiddleware(func: (...any) -> nil)
+	table.insert(self._middlewareFunctions, func)
 end
 
 --[=[
