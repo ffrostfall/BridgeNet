@@ -212,33 +212,33 @@ function ServerBridge._start(config: config): nil
 				else
 					debug.profilebegin(string.format("connections_%s", obj._name))
 					if activeConfig.receive_logging ~= nil then
-						activeConfig.receive_logging(v.plr, unpack(v.args, 1, argCount))
+						activeConfig.receive_logging(v.plr, unpack(v.args))
 					end
 
-					for callback, timesConnected in pairs(obj._connections) do
+					for callback, timesConnected in obj._connections do
 						-- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
 						-- also for error protection
 						for _ = 1, timesConnected do
-							if obj._middlewareFunctions == nil then
-								callback(v.plr, table.unpack(v.args))
-							else
-								task.spawn(function()
-									local result
-									for _, func in obj._middlewareFunctions do
-										if result then
-											local potential = { func(table.unpack(result)) }
-											if #potential == 0 then
-												continue
-											end
-											result = potential
-										else
-											result = { func(table.unpack(v.args)) }
+							task.spawn(function()
+								local result
+								for _, func in obj._middlewareFunctions do
+									if result then
+										local potential = { func(table.unpack(result)) }
+										if #potential == 0 then
+											continue
 										end
+										result = potential
+									else
+										result = { func(table.unpack(v.args)) }
 									end
+								end
 
-									callback(v.plr, result)
-								end)
-							end
+								if result == nil then
+									result = v.args
+								end
+
+								callback(v.plr, table.unpack(result))
+							end)
 						end
 					end
 					debug.profileend()
