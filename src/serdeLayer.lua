@@ -211,7 +211,7 @@ function serdeLayer.DictionaryToTable(dict: { [string]: any })
 		return string.lower(a) < string.lower(b)
 	end)
 	local toReturn = {}
-	for _, v in ipairs(keys) do
+	for _, v in keys do
 		table.insert(toReturn, dict[v])
 	end
 	return toReturn

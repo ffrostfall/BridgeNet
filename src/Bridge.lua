@@ -3,13 +3,11 @@ type config = {
 	Middleware: { (...any) -> ...any },
 }
 
-return function(name: string)
-	return function(config: config)
-		return {
-			_isBridge = true,
-			middleware = config.Middleware,
-			rate = config.maxRatePerMinute,
-			name = name,
-		}
-	end
+return function(name: string, config: config)
+	return {
+		_isBridge = true,
+		middleware = config.Middleware,
+		rate = config.maxRatePerMinute,
+		name = name,
+	}
 end

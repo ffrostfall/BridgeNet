@@ -1,5 +1,8 @@
-# Changelog
-Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
+# 1.9.8-beta
+- Switched for loops to be generics for consistency. This should help performance.
+- Switched time limit to be .5 milliseconds
+- Fixed Bridge:Destroy()?
+- Type improvements
 
 # 1.9.7-beta
 - BridgeNet.Started has been added

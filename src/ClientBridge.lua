@@ -66,7 +66,7 @@ function ClientBridge._start(config)
 					table.insert(tbl, v.remote)
 					table.insert(tbl, Invoke)
 					table.insert(tbl, v.uuid)
-					for _, k in ipairs(v.args) do
+					for _, k in v.args do
 						table.insert(tbl, k)
 					end
 					table.insert(toSend, tbl)
@@ -74,7 +74,7 @@ function ClientBridge._start(config)
 					local tbl = {}
 					table.insert(tbl, v.remote)
 
-					for _, k in ipairs(v.args) do
+					for _, k in v.args do
 						table.insert(tbl, k)
 					end
 
@@ -92,7 +92,7 @@ function ClientBridge._start(config)
 		end
 
 		if (time() - lastReceive) > rateManager.GetReceiveRate() then
-			for _, v in ipairs(ReceiveQueue) do
+			for _, v in ReceiveQueue do
 				local args = v.args
 				local argCount = #args
 				local remoteName = serdeLayer.WhatIsThis(v.remote, "id")
@@ -134,7 +134,7 @@ function ClientBridge._start(config)
 	end)
 
 	RemoteEvent.OnClientEvent:Connect(function(tbl)
-		for _, v in ipairs(tbl) do
+		for _, v in tbl do
 			local params = v
 			local remote = params[1]
 			table.remove(params, 1)
@@ -367,7 +367,7 @@ end
 ]=]
 function ClientBridge:Destroy()
 	BridgeObjects[self._name] = nil
-	for k, v in ipairs(self) do
+	for k, v in pairs(self) do
 		if v.Destroy ~= nil then
 			v:Destroy()
 		else

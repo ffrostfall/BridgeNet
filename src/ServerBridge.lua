@@ -72,7 +72,7 @@ function ServerBridge._start(config: config): nil
 		--[[if (time() - lastClear) > 60 then
 			lastClear = time()
 
-			for _, v in ipairs(BridgeObjects) do
+			for _, v in BridgeObjects do
 				v._rateInThisMinute = 0
 			end
 		end]]
@@ -99,13 +99,13 @@ function ServerBridge._start(config: config): nil
 
 						table.insert(tbl, v.remote)
 
-						for _, k in ipairs(v.args) do
+						for _, k in v.args do
 							table.insert(tbl, k)
 						end
 
 						table.insert(toSendAll, tbl)
 					elseif typeof(v.plrs) == "table" then
-						for _, l in ipairs(v.plrs) do
+						for _, l in v.plrs do
 							if toSendPlayers[l] == nil then
 								toSendPlayers[l] = {}
 							end
@@ -129,7 +129,7 @@ function ServerBridge._start(config: config): nil
 
 						table.insert(tbl, v.remote)
 
-						for _, n in ipairs(v.args) do
+						for _, n in v.args do
 							table.insert(tbl, n)
 						end
 
@@ -146,7 +146,7 @@ function ServerBridge._start(config: config): nil
 					table.insert(tbl, InvokeReply)
 					table.insert(tbl, v.uuid)
 
-					for _, k in ipairs(v.args) do
+					for _, k in v.args do
 						table.insert(tbl, k)
 					end
 
@@ -165,7 +165,7 @@ function ServerBridge._start(config: config): nil
 
 		if (time() - lastReceive) >= receiveRate then
 			lastReceive = time()
-			for _, v in ipairs(ReceiveQueue) do
+			for _, v in ReceiveQueue do
 				for i = 1, #v.args do
 					if v.args[i] == serdeLayer.NilIdentifier then
 						v.args[i] = nil
@@ -247,7 +247,7 @@ function ServerBridge._start(config: config): nil
 			table.clear(ReceiveQueue)
 		end
 
-		if (os.clock() - start) > 0.001 then
+		if (os.clock() - start) > 0.0005 then
 			ExceededTimeLimit:Fire(os.clock() - start)
 		end
 
@@ -255,7 +255,7 @@ function ServerBridge._start(config: config): nil
 	end)
 
 	RemoteEvent.OnServerEvent:Connect(function(plr, tbl)
-		for _, v in ipairs(tbl) do
+		for _, v in tbl do
 			local args = v
 			local remote = args[1]
 			table.remove(args, 1)
@@ -388,7 +388,7 @@ end
 ]=]
 function ServerBridge:FireToAllExcept(blacklistedPlrs: Player | { Player }, ...: any): { Player }
 	local toSend = {}
-	for _, v: Player in ipairs(Players:GetPlayers()) do
+	for _, v: Player in Players:GetPlayers() do
 		if typeof(blacklistedPlrs) == "table" then
 			if table.find(blacklistedPlrs, v) then
 				continue
@@ -442,7 +442,7 @@ function ServerBridge:FireAllInRangeExcept(
 	...: any
 )
 	local toSend = {}
-	for _, v: Player in ipairs(Players:GetPlayers()) do
+	for _, v: Player in Players:GetPlayers() do
 		if v:DistanceFromCharacter(point) <= range then
 			if typeof(blacklistedPlrs) == "table" then
 				if table.find(blacklistedPlrs, v) then
@@ -491,7 +491,7 @@ end
 ]=]
 function ServerBridge:FireAllInRange(point: Vector3, range: number, ...: any): { Player }
 	local toSend = {}
-	for _, v: Player in ipairs(Players:GetPlayers()) do
+	for _, v: Player in Players:GetPlayers() do
 		if v:DistanceFromCharacter(point) <= range then
 			table.insert(toSend, v)
 		end
@@ -725,7 +725,7 @@ end
 function ServerBridge:Destroy()
 	BridgeObjects[self._name] = nil
 	serdeLayer.DestroyIdentifier(self.Name)
-	for k, v in ipairs(self) do
+	for k, v in pairs(self) do
 		if v.Destroy ~= nil then
 			v:Destroy()
 		else
