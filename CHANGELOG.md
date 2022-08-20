@@ -9,7 +9,6 @@ Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 	- Added :SetMiddleware()
 	- Added :AddMiddleware()
 	- Middleware will be added to the client soon enough
-- Added ``t`` as a dependency
 - Added .CreateIdentifiersFromDictionary
 - Added .WaitForIdentifier, client-sided only.
 - ReceiveLogFunction and SendLogFunction are now stable and ready to be used
