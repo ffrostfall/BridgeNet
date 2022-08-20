@@ -69,6 +69,7 @@ type ServerBridgeDictionary = {
 			DoStuff = "DoStuff",
 		},
 	})
+	```
 ]=]
 
 --[=[
@@ -105,6 +106,9 @@ local DefaultSend = require(script.ConfigSymbols.DefaultSend)
 local PrintRemotes = require(script.ConfigSymbols.PrintRemotes)
 local SendLogFunction = require(script.ConfigSymbols.SendLogFunction)
 local ReceiveLogFunction = require(script.ConfigSymbols.ReceiveLogFunction)
+local Signal = require(script.Parent.GoodSignal)
+
+local Started = Signal.new()
 
 script.Destroying:Connect(function()
 	serdeLayer._destroy()
@@ -128,6 +132,8 @@ return {
 	UnpackUUID = serdeLayer.UnpackUUID,
 
 	DictionaryToTable = serdeLayer.DictionaryToTable,
+
+	Started = Started,
 
 	SendLogFunction = SendLogFunction,
 	ReceiveLogFunction = ReceiveLogFunction,
@@ -219,6 +225,7 @@ return {
 		}
 
 		serdeLayer._start()
+		Started:Fire()
 		if isServer then
 			return ServerBridge._start(configToSend)
 		else

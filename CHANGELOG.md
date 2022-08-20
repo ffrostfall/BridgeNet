@@ -1,6 +1,10 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
+# 1.9.7-beta
+- BridgeNet.Started has been added
+- Middleware fixes. Should be stable now
+
 # 1.8.7-beta
 - Hotfix for ClientObject:Fire()
 
