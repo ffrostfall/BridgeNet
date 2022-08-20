@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="generator" content="Docusaurus v2.0.0-beta.21">
 <title data-rh="true">RateManager | BridgeNet</title><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://ffrostflame.github.io/BridgeNet/api/RateManager"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docusaurus_tag" content="default"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docsearch:docusaurus_tag" content="default"><meta data-rh="true" property="og:title" content="RateManager | BridgeNet"><meta data-rh="true" name="description" content="Manages the send and receive rates. Functions are basic setters and getters."><meta data-rh="true" property="og:description" content="Manages the send and receive rates. Functions are basic setters and getters."><link data-rh="true" rel="icon" href="/BridgeNet/favicon.png"><link data-rh="true" rel="canonical" href="https://ffrostflame.github.io/BridgeNet/api/RateManager"><link data-rh="true" rel="alternate" href="https://ffrostflame.github.io/BridgeNet/api/RateManager" hreflang="en"><link data-rh="true" rel="alternate" href="https://ffrostflame.github.io/BridgeNet/api/RateManager" hreflang="x-default"><link rel="stylesheet" href="/BridgeNet/assets/css/styles.425d8a3f.css">
-<link rel="preload" href="/BridgeNet/assets/js/runtime~main.42c7f359.js" as="script">
-<link rel="preload" href="/BridgeNet/assets/js/main.9d23d91d.js" as="script">
+<link rel="preload" href="/BridgeNet/assets/js/runtime~main.b1f42bf6.js" as="script">
+<link rel="preload" href="/BridgeNet/assets/js/main.f8908cbe.js" as="script">
 </head>
 <body class="navigation-with-keyboard">
 <script>!function(){function e(e){document.documentElement.setAttribute("data-theme",e)}var t=function(){var e=null;try{e=localStorage.getItem("theme")}catch(e){}return e}();null!==t?e(t):window.matchMedia("(prefers-color-scheme: dark)").matches?e("dark"):(window.matchMedia("(prefers-color-scheme: light)").matches,e("light"))}()</script><div id="__docusaurus">
@@ -19,6 +19,14 @@
 </div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="SetSendRate"><code style="text-decoration:none">SetSendRate</code><a class="hash-link" href="#SetSendRate" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/ffrostflame/bridgenet//blob/main/src/rateManager.lua#L36"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>RateManager<!-- -->.</code><code class="green_DgR4">SetSendRate</code><code>(</code><code>rate<!-- -->: </code><code class="blue_P4bS">number</code><code>) → </code><code class="blue_P4bS">nil</code></div><div>
 <p>Sets the rate (in Hz) of which remotes are fired</p>
 <pre class="language-lua"><code class="language-lua">	RateManager<span class="token punctuation">.</span><span class="token function">SetSendRate</span><span class="token punctuation">(</span><span class="token number">30</span><span class="token punctuation">)</span> <span class="token comment">-- Do connections at 30 fps</span>
+</code></pre>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="GetReceiveRate"><code style="text-decoration:none">GetReceiveRate</code><a class="hash-link" href="#GetReceiveRate" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/ffrostflame/bridgenet//blob/main/src/rateManager.lua#L50"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>RateManager<!-- -->.</code><code class="green_DgR4">GetReceiveRate</code><code>(</code><code>) → </code><code class="blue_P4bS">number</code></div><div>
+<p>Returns the current rate of which connections are handled.</p>
+<pre class="language-lua"><code class="language-lua">	<span class="token function">print</span><span class="token punctuation">(</span>RateManager<span class="token punctuation">.</span><span class="token function">GetReceiveRate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">-- Prints 60</span>
+</code></pre>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="GetSendRate"><code style="text-decoration:none">GetSendRate</code><a class="hash-link" href="#GetSendRate" title="Direct link to heading">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/ffrostflame/bridgenet//blob/main/src/rateManager.lua#L63"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>RateManager<!-- -->.</code><code class="green_DgR4">GetSendRate</code><code>(</code><code>) → </code><code class="blue_P4bS">number</code></div><div>
+<p>Returns the current rate of which remotes are fired</p>
+<pre class="language-lua"><code class="language-lua">	<span class="token function">print</span><span class="token punctuation">(</span>RateManager<span class="token punctuation">.</span><span class="token function">GetSendRate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">-- Prints 60</span>
 </code></pre>
 </div></div></article></div><details><summary>Show raw api</summary><pre style="max-width:100%;white-space:pre-wrap">{
     &quot;functions&quot;: [
@@ -65,6 +73,38 @@
                 &quot;line&quot;: 36,
                 &quot;path&quot;: &quot;src/rateManager.lua&quot;
             }
+        },
+        {
+            &quot;name&quot;: &quot;GetReceiveRate&quot;,
+            &quot;desc&quot;: &quot;Returns the current rate of which connections are handled.\n\n```lua\n\tprint(RateManager.GetReceiveRate()) -- Prints 60\n```&quot;,
+            &quot;params&quot;: [],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;number&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 50,
+                &quot;path&quot;: &quot;src/rateManager.lua&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;GetSendRate&quot;,
+            &quot;desc&quot;: &quot;Returns the current rate of which remotes are fired\n\n```lua\n\tprint(RateManager.GetSendRate()) -- Prints 60\n```&quot;,
+            &quot;params&quot;: [],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;number&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;static&quot;,
+            &quot;source&quot;: {
+                &quot;line&quot;: 63,
+                &quot;path&quot;: &quot;src/rateManager.lua&quot;
+            }
         }
     ],
     &quot;properties&quot;: [],
@@ -75,8 +115,8 @@
         &quot;line&quot;: 6,
         &quot;path&quot;: &quot;src/rateManager.lua&quot;
     }
-}</pre></details></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#types" class="table-of-contents__link toc-highlight">Types</a></li><li><a href="#properties" class="table-of-contents__link toc-highlight">Properties</a></li><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a><ul><li><a href="#SetReceiveRate" class="table-of-contents__link toc-highlight">.SetReceiveRate</a></li><li><a href="#SetSendRate" class="table-of-contents__link toc-highlight">.SetSendRate</a></li></ul></li></ul></div></div></div></div></main></div></div><footer class="footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2022 ffrostflame. Built with Moonwave and Docusaurus.</div></div></div></footer></div>
-<script src="/BridgeNet/assets/js/runtime~main.42c7f359.js"></script>
-<script src="/BridgeNet/assets/js/main.9d23d91d.js"></script>
+}</pre></details></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#types" class="table-of-contents__link toc-highlight">Types</a></li><li><a href="#properties" class="table-of-contents__link toc-highlight">Properties</a></li><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a><ul><li><a href="#GetReceiveRate" class="table-of-contents__link toc-highlight">.GetReceiveRate</a></li><li><a href="#GetSendRate" class="table-of-contents__link toc-highlight">.GetSendRate</a></li><li><a href="#SetReceiveRate" class="table-of-contents__link toc-highlight">.SetReceiveRate</a></li><li><a href="#SetSendRate" class="table-of-contents__link toc-highlight">.SetSendRate</a></li></ul></li></ul></div></div></div></div></main></div></div><footer class="footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2022 ffrostflame. Built with Moonwave and Docusaurus.</div></div></div></footer></div>
+<script src="/BridgeNet/assets/js/runtime~main.b1f42bf6.js"></script>
+<script src="/BridgeNet/assets/js/main.f8908cbe.js"></script>
 </body>
 </html>
