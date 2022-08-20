@@ -82,7 +82,13 @@ function ServerBridge._start(config: config): nil
 
 			local toSendAll = {}
 			local toSendPlayers = {}
-			for _, v in ipairs(SendQueue) do
+			for _, v in SendQueue do
+				for i = 1, #v.args do
+					if v.args[i] == nil then
+						v.args[i] = serdeLayer.NilIdentifier
+					end
+				end
+
 				if activeConfig.send_function ~= nil then
 					activeConfig.send_function(serdeLayer.WhatIsThis(v.remote, "id"), v.plrs, table.unpack(v.args))
 				end
@@ -108,7 +114,7 @@ function ServerBridge._start(config: config): nil
 
 							table.insert(tbl, v.remote)
 
-							for _, m in ipairs(v.args) do
+							for _, m in v.args do
 								table.insert(tbl, m)
 							end
 
@@ -160,6 +166,12 @@ function ServerBridge._start(config: config): nil
 		if (time() - lastReceive) >= receiveRate then
 			lastReceive = time()
 			for _, v in ipairs(ReceiveQueue) do
+				for i = 1, #v.args do
+					if v.args[i] == serdeLayer.NilIdentifier then
+						v.args[i] = nil
+					end
+				end
+
 				local obj = BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]
 				if obj == nil then
 					--Don't warn here because that's a vulnerability. We don't want exploiters
@@ -183,7 +195,7 @@ function ServerBridge._start(config: config): nil
 							})
 						end)
 					else
-						-- onInvoke is not set send an error to the client
+						-- onInvoke is not set s	end an error to the client
 						local args = v.args
 						local uuid = args[2]
 
@@ -200,7 +212,7 @@ function ServerBridge._start(config: config): nil
 				else
 					debug.profilebegin(string.format("connections_%s", obj._name))
 					if activeConfig.receive_logging ~= nil then
-						activeConfig.receive_logging(v.plr, table.unpack(v.args))
+						activeConfig.receive_logging(v.plr, unpack(v.args, 1, argCount))
 					end
 
 					for callback, timesConnected in pairs(obj._connections) do
