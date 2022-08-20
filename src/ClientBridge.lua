@@ -56,8 +56,8 @@ function ClientBridge._start(config)
 			local toSend = {}
 			for _, v in SendQueue do
 				for i = 1, #v.args do
-					if v.args[1] == nil then
-						v.args[1] = serdeLayer.NilIdentifier
+					if v.args[i] == nil then
+						v.args[i] = serdeLayer.NilIdentifier
 					end
 				end
 
