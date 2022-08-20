@@ -18,6 +18,8 @@ local AutoSerde: Folder = nil
 
 type toSend = string
 
+serdeLayer.NilIdentifier = "null"
+
 local function fromHex(toConvert: string): string
 	return string.gsub(toConvert, "..", function(cc)
 		return string.char(tonumber(cc, 16))

@@ -54,7 +54,13 @@ function ClientBridge._start(config)
 
 		if (time() - lastSend) > rateManager.GetSendRate() then
 			local toSend = {}
-			for _, v in ipairs(SendQueue) do
+			for _, v in SendQueue do
+				for i = 1, #v.args do
+					if v.args[1] == nil then
+						v.args[1] = serdeLayer.NilIdentifier
+					end
+				end
+
 				if v.requestType == "invoke" then
 					local tbl = {}
 					table.insert(tbl, v.remote)
@@ -88,17 +94,26 @@ function ClientBridge._start(config)
 		if (time() - lastReceive) > rateManager.GetReceiveRate() then
 			for _, v in ipairs(ReceiveQueue) do
 				local args = v.args
+				local argCount = #args
 				local remoteName = serdeLayer.WhatIsThis(v.remote, "id")
+
 				if BridgeObjects[remoteName] == nil then
 					continue
 					--error("[BridgeNet] Client received non-existant Bridge. Naming mismatch?")
 				end
-				if v.args[1] ~= InvokeReply then
+
+				for i = 1, #args do
+					if args[i] == serdeLayer.NilIdentifier then
+						args[i] = nil
+					end
+				end
+
+				if args[1] ~= InvokeReply then
 					for callback, timesConnected in pairs(BridgeObjects[remoteName]._connections) do
 						for _ = 1, timesConnected do
-							task.spawn(callback, unpack(args))
+							task.spawn(callback, unpack(args, 1, argCount))
 							if activeConfig.receive_function ~= nil then
-								task.spawn(activeConfig.receive_function, remoteName, unpack(args))
+								task.spawn(activeConfig.receive_function, remoteName, unpack(args, 1, argCount))
 							end
 						end
 					end
@@ -106,10 +121,12 @@ function ClientBridge._start(config)
 					local uuid = args[2]
 					table.remove(args, 1)
 					table.remove(args, 1)
-					task.spawn(threads[uuid], unpack(args))
+					argCount -= 2
+					task.spawn(threads[uuid], unpack(args, 1, argCount))
 					threads[uuid] = nil -- don't want a memory leak ;)
 				end
 			end
+
 			ReceiveQueue = {}
 		end
 

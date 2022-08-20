@@ -1,6 +1,9 @@
 # Changelog
 Versions are formatted in [semver](https://semver.org/spec/v2.0.0.html).
 
+# 1.8.6-beta
+- You can now pass nil as parameters
+
 # 1.8.5-beta
 - Added better performance profiling
 - Added ExceededTimeLimit signal
