@@ -150,7 +150,7 @@ function ServerBridge._start(config: config): nil
 						table.insert(tbl, k)
 					end
 
-					table.insert(toSendAll, tbl)
+					table.insert(toSendPlayers[v.plrs], tbl)
 				end
 			end
 
