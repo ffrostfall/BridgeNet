@@ -142,6 +142,11 @@ return {
 	DefaultSend = DefaultSend,
 
 	WaitForBridge = function(str)
+		if not hasStarted then
+			repeat
+				task.wait()
+			until hasStarted
+		end
 		if isServer then
 			return ServerBridge.waitForBridge(str) :: ServerBridge.ServerObject
 		else
@@ -149,6 +154,11 @@ return {
 		end
 	end,
 	CreateBridge = function(str)
+		if not hasStarted then
+			repeat
+				task.wait()
+			until hasStarted
+		end
 		if isServer then
 			return ServerBridge.new(str)
 		else
@@ -156,6 +166,11 @@ return {
 		end
 	end,
 	CreateBridgesFromDictionary = function(tbl: { [any]: string | {} })
+		if not hasStarted then
+			repeat
+				task.wait()
+			until hasStarted
+		end
 		local new
 		if isServer then
 			new = ServerBridge.new :: ServerBridge.ServerObject
@@ -179,6 +194,12 @@ return {
 		}
 	end,
 	CreateIdentifiersFromDictionary = function(tbl: { [any]: string | {} })
+		if not hasStarted then
+			repeat
+				task.wait()
+			until hasStarted
+		end
+
 		local new
 		if isServer then
 			new = serdeLayer.CreateIdentifier

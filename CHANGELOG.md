@@ -1,3 +1,6 @@
+# 1.9.9-beta
+- Functions that rely on .Start will yield until started
+
 # 1.9.8-beta
 - Switched for loops to be generics for consistency. This should help performance.
 - Switched time limit to be .5 milliseconds
