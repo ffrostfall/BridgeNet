@@ -1,9 +1,8 @@
 local RunService = game:GetService("RunService")
 
-local serdeLayer = require(script.serdeLayer)
+local SerdesLayer = require(script.SerdesLayer)
 local ServerBridge = require(script.ServerBridge)
 local ClientBridge = require(script.ClientBridge)
-local rateManager = require(script.rateManager)
 
 local isServer = RunService:IsServer()
 local hasStarted = false
@@ -38,41 +37,6 @@ type ServerBridgeDictionary = {
 ]=]
 
 --[=[
-	@function WaitForBridge
-	@within BridgeNet	
-
-	Waits for a BridgeObject to be created, then resumes the thread.
-	This does NOT replicate. If the server creates a BridgeObject, it will NOT replicate to the client.
-	This will wait until a BridgeObject is created for the client/server respectively.
-	
-	```lua
-	print("client is waiting for the bridge to be created on the client..")
-	local Bridge = BridgeNet.WaitForBridge("Remote")
-	print("client is done waiting! was created in another script.")
-	```
-	
-	@return BridgeObject
-]=]
-
---[=[
-	@function CreateBridgesFromDictionary
-	@within BridgeNet
-	
-	Loops through the dictionary given and creates ``Bridge``s for the dictionary keys.
-	Example usage:
-	```lua
-	local Network = BridgeNet.CreateBridgesFromDictionary({
-		RemoteA = "RemoteA",
-		RemoteB = "Rem_B", -- Creates bridge "Rem_B" with index "RemoteB"
-		OtherRemotes = {
-			PrintStuff = "Print",
-			DoStuff = "DoStuff",
-		},
-	})
-	```
-]=]
-
---[=[
 	@function Start
 	@within BridgeNet
 	
@@ -103,56 +67,42 @@ type ServerBridgeDictionary = {
 
 local DefaultReceive = require(script.ConfigSymbols.DefaultReceive)
 local DefaultSend = require(script.ConfigSymbols.DefaultSend)
-local PrintRemotes = require(script.ConfigSymbols.PrintRemotes)
 local SendLogFunction = require(script.ConfigSymbols.SendLogFunction)
 local ReceiveLogFunction = require(script.ConfigSymbols.ReceiveLogFunction)
 local Signal = require(script.Parent.GoodSignal)
+local Declare = require(script.Declare)
+local Start = require(script.Start)
+local Identifiers = require(script.Identifiers)
 
 local Started = Signal.new()
 
 script.Destroying:Connect(function()
-	serdeLayer._destroy()
+	SerdesLayer._destroy()
 	if isServer then
 		ServerBridge._destroy()
 	end
 end)
 
 return {
-	CreateIdentifier = serdeLayer.CreateIdentifier,
-	WhatIsThis = serdeLayer.WhatIsThis,
-	DestroyIdentifier = serdeLayer.DestroyIdentifier,
+	Declare = Declare,
+	Identifiers = Identifiers,
+	
+	CreateIdentifier = SerdesLayer.CreateIdentifier,
+	DestroyIdentifier = SerdesLayer.DestroyIdentifier,
 
-	SetSendRate = rateManager.SetSendRate,
-	GetSendRate = rateManager.GetSendRate,
-	SetReceiveRate = rateManager.SetReceiveRate,
-	GetReceiveRate = rateManager.GetReceiveRate,
+	CreateUUID = SerdesLayer.CreateUUID,
+	PackUUID = SerdesLayer.PackUUID,
+	UnpackUUID = SerdesLayer.UnpackUUID,
 
-	CreateUUID = serdeLayer.CreateUUID,
-	PackUUID = serdeLayer.PackUUID,
-	UnpackUUID = serdeLayer.UnpackUUID,
-
-	DictionaryToTable = serdeLayer.DictionaryToTable,
+	DictionaryToTable = SerdesLayer.DictionaryToTable,
 
 	Started = Started,
 
 	SendLogFunction = SendLogFunction,
 	ReceiveLogFunction = ReceiveLogFunction,
-
 	DefaultReceive = DefaultReceive,
 	DefaultSend = DefaultSend,
 
-	WaitForBridge = function(str)
-		if not hasStarted then
-			repeat
-				task.wait()
-			until hasStarted
-		end
-		if isServer then
-			return ServerBridge.waitForBridge(str) :: ServerBridge.ServerObject
-		else
-			return ClientBridge.waitForBridge(str) :: ClientBridge.ClientObject
-		end
-	end,
 	CreateBridge = function(str)
 		if not hasStarted then
 			repeat
@@ -165,92 +115,10 @@ return {
 			return ClientBridge.new(str)
 		end
 	end,
-	CreateBridgesFromDictionary = function(tbl: { [any]: string | {} })
-		if not hasStarted then
-			repeat
-				task.wait()
-			until hasStarted
-		end
-		local new
-		if isServer then
-			new = ServerBridge.new :: ServerBridge.ServerObject
-		else
-			new = ClientBridge.new :: ClientBridge.ClientObject
-		end
-		local function recursivelyAdd(tableTo: { [any]: string })
-			local toReturn = {}
-			for k, v in pairs(tableTo) do
-				if typeof(v) ~= "table" then
-					toReturn[k] = new(v)
-				else
-					toReturn[k] = recursivelyAdd(v)
-				end
-			end
-			return toReturn
-		end
-
-		return recursivelyAdd(tbl) :: {
-			[string]: ServerBridge.ServerObject | ClientBridge.ClientObject,
-		}
-	end,
-	CreateIdentifiersFromDictionary = function(tbl: { [any]: string | {} })
-		if not hasStarted then
-			repeat
-				task.wait()
-			until hasStarted
-		end
-
-		local new
-		if isServer then
-			new = serdeLayer.CreateIdentifier
-		else
-			new = serdeLayer.WhatIsThis
-		end
-		local function recursivelyAdd(tableTo: { [any]: string })
-			local toReturn = {}
-			for k, v in pairs(tableTo) do
-				if typeof(v) ~= "table" then
-					toReturn[k] = new(v)
-				else
-					toReturn[k] = recursivelyAdd(v)
-				end
-			end
-			return toReturn
-		end
-
-		return recursivelyAdd(tbl) :: {
-			[string]: string | { [string]: string },
-		}
-	end,
 	Start = function(config: { [any]: number | () -> any })
-		local prefix = if RunService:IsServer() then "SERVER" else "CLIENT"
-
-		if hasStarted then
-			error(string.format("BridgeNet has already been started on the %s", prefix))
-		end
-		hasStarted = true
-
-		if not config[DefaultReceive] then
-			warn(string.format("[%s] DefaultReceive doesn't exist!", prefix))
-		end
-		if not config[DefaultSend] then
-			warn(string.format("[%s] DefaultSend doesn't exist!", prefix))
-		end
-
-		local configToSend = {
-			send_default_rate = config[DefaultSend] or 60,
-			receive_default_rate = config[DefaultReceive] or 60,
-			print_remotes = config[PrintRemotes],
-			send_function = config[SendLogFunction],
-			receive_function = config[ReceiveLogFunction],
-		}
-
-		serdeLayer._start()
-		Started:Fire()
-		if isServer then
-			return ServerBridge._start(configToSend)
-		else
-			return ClientBridge._start(configToSend)
+		if Start(config) then
+			Started:Fire()
+			hasStarted = true
 		end
 	end,
 }

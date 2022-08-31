@@ -8,17 +8,17 @@ local sendDict: { [string]: string } = {}
 local numOfSerials: number = 0
 
 --[=[
-	@class serdeLayer
+	@class SerdesLayer
 	
 	This module handles serialization and deserialization for you.
 ]=]
-local serdeLayer = {}
+local SerdesLayer = {}
 
 local AutoSerde: Folder = nil
 
 type toSend = string
 
-serdeLayer.NilIdentifier = "null"
+SerdesLayer.NilIdentifier = "null"
 
 local function fromHex(toConvert: string): string
 	return string.gsub(toConvert, "..", function(cc)
@@ -32,7 +32,7 @@ local function toHex(toConvert: string): string
 	end)
 end
 
-function serdeLayer._start()
+function SerdesLayer._start()
 	if RunService:IsClient() then
 		AutoSerde = ReplicatedStorage:WaitForChild("AutoSerde")
 		for _, v in ipairs(AutoSerde:GetChildren()) do
@@ -57,24 +57,8 @@ function serdeLayer._start()
 	end
 end
 
---[=[
-	Takes a compressed value and returns the identification related to it, and does the reverse.	
-
-	```lua
-		print(BridgeNet.WhatIsThis("SomeIdentificationStringHere")) -- prints the compressed value
-	```
-	
-	@param str string
-	@param toSend "id" | "compressed"
-	@return string?
-]=]
-function serdeLayer.WhatIsThis(str: string, toSend: toSend): string?
-	if toSend == "id" then
-		return receiveDict[str]
-	elseif toSend == "compressed" then
-		return sendDict[str]
-	end
-	return error("toSend is not receive or send.")
+function SerdesLayer._destroy()
+	AutoSerde:Destroy()
 end
 
 --[=[
@@ -90,9 +74,9 @@ end
 	@param id string
 	@return string
 ]=]
-function serdeLayer.CreateIdentifier(id: string): string
+function SerdesLayer.CreateIdentifier(id: string): string
 	if sendDict[id] then
-		return sendDict[id]
+		return sendDict[id] or SerdesLayer.WaitForIdentifier(id)
 	end
 
 	assert(RunService:IsServer(), "You cannot create identifiers on the client.")
@@ -114,13 +98,17 @@ function serdeLayer.CreateIdentifier(id: string): string
 	return StringValue.Value
 end
 
-function serdeLayer.WaitForIdentifier(id: string): string
+function SerdesLayer.WaitForIdentifier(id: string): string
 	assert(not RunService:IsServer(), "WaitForIdentifier can only be called from the client!")
 
 	repeat
 		task.wait()
 	until sendDict[id] ~= nil
 	return sendDict[id]
+end
+
+function SerdesLayer.GetRawIdentifierString(compressed: string)
+	return receiveDict[compressed]
 end
 --[=[
 	Creates an identifier and associates it with a compressed value. This is shared between the server and the client.
@@ -134,7 +122,7 @@ end
 	@param id string
 	@return nil
 ]=]
-function serdeLayer.DestroyIdentifier(id: string): nil
+function SerdesLayer.DestroyIdentifier(id: string): nil
 	assert(RunService:IsServer(), "You cannot destroy identifiers on the client.")
 	assert(type(id) == "string", "ID must be a string")
 
@@ -156,7 +144,7 @@ end
 	
 	@return string
 ]=]
-function serdeLayer.CreateUUID()
+function SerdesLayer.CreateUUID()
 	return string.gsub(HttpService:GenerateGUID(false), "-", "")
 end
 
@@ -170,7 +158,7 @@ end
 	@param uuid string
 	@return string
 ]=]
-function serdeLayer.PackUUID(uuid: string): string
+function SerdesLayer.PackUUID(uuid: string): string
 	return fromHex(uuid)
 end
 
@@ -184,7 +172,7 @@ end
 	@param uuid string
 	@return string
 ]=]
-function serdeLayer.UnpackUUID(uuid: string): string
+function SerdesLayer.UnpackUUID(uuid: string): string
 	return toHex(uuid)
 end
 
@@ -201,7 +189,7 @@ end
 	@param dict {[string]: any}
 	@return string
 ]=]
-function serdeLayer.DictionaryToTable(dict: { [string]: any })
+function SerdesLayer.DictionaryToTable(dict: { [string]: any })
 	local keys = {}
 	for key, _ in pairs(dict) do
 		table.insert(keys, key)
@@ -217,4 +205,4 @@ function serdeLayer.DictionaryToTable(dict: { [string]: any })
 	return toReturn
 end
 
-return serdeLayer
+return SerdesLayer

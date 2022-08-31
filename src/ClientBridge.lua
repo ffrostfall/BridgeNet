@@ -2,12 +2,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Promise = require(script.Parent.Parent.Promise)
-local serdeLayer = require(script.Parent.serdeLayer)
+local SerdesLayer = require(script.Parent.SerdesLayer)
 local rateManager = require(script.Parent.rateManager)
 
-local RemoteEvent
-local Invoke
-local InvokeReply
+local RemoteEvent: RemoteEvent
+local Invoke: string
+local InvokeReply: string
 
 type sendPacketQueue = { remote: string, args: { any }, requestType: string, uuid: string? }
 
@@ -44,91 +44,85 @@ function ClientBridge._start(config)
 	rateManager.SetSendRate(config.send_default_rate)
 	rateManager.SetReceiveRate(config.receive_default_rate)
 
-	Invoke = serdeLayer.WhatIsThis("Invoke", "compressed")
-	InvokeReply = serdeLayer.WhatIsThis("InvokeReply", "compressed")
+	Invoke = SerdesLayer.WhatIsThis("Invoke", "compressed")
+	InvokeReply = SerdesLayer.WhatIsThis("InvokeReply", "compressed")
 
 	local lastSend = 0
 	local lastReceive = 0
 	RunService.Heartbeat:Connect(function()
 		debug.profilebegin("ClientBridge")
 
-		if (time() - lastSend) > rateManager.GetSendRate() then
-			local toSend = {}
-			for _, v in SendQueue do
-				for i = 1, #v.args do
-					if v.args[i] == nil then
-						v.args[i] = serdeLayer.NilIdentifier
-					end
-				end
-
-				if v.requestType == "invoke" then
-					local tbl = {}
-					table.insert(tbl, v.remote)
-					table.insert(tbl, Invoke)
-					table.insert(tbl, v.uuid)
-					for _, k in v.args do
-						table.insert(tbl, k)
-					end
-					table.insert(toSend, tbl)
-				elseif v.requestType == "send" then
-					local tbl = {}
-					table.insert(tbl, v.remote)
-
-					for _, k in v.args do
-						table.insert(tbl, k)
-					end
-
-					if activeConfig.send_function ~= nil then
-						activeConfig.send_function(serdeLayer.WhatIsThis(v.remote, "id"), unpack(v.args))
-					end
-
-					table.insert(toSend, tbl)
+		local toSend = {}
+		for _, v in SendQueue do
+			for i = 1, #v.args do
+				if v.args[i] == nil then
+					v.args[i] = SerdesLayer.NilIdentifier
 				end
 			end
-			if #toSend ~= 0 then
-				RemoteEvent:FireServer(toSend)
+
+			if v.requestType == "invoke" then
+				local tbl = { v.remote, Invoke, v.uuid }
+
+				for _, k in v.args do
+					table.insert(tbl, k)
+				end
+
+				table.insert(toSend, tbl)
+			elseif v.requestType == "send" then
+				local tbl = { v.remote }
+
+				for _, k in v.args do
+					table.insert(tbl, k)
+				end
+
+				if activeConfig.send_function ~= nil then
+					activeConfig.send_function(SerdesLayer.WhatIsThis(v.remote, "id"), unpack(v.args))
+				end
+
+				table.insert(toSend, tbl)
 			end
-			SendQueue = {}
 		end
+		if #toSend ~= 0 then
+			RemoteEvent:FireServer(toSend)
+		end
+		SendQueue = {}
 
-		if (time() - lastReceive) > rateManager.GetReceiveRate() then
-			for _, v in ReceiveQueue do
-				local args = v.args
-				local argCount = #args
-				local remoteName = serdeLayer.WhatIsThis(v.remote, "id")
+		for _, v in ReceiveQueue do
+			local args = v.args
+			local argCount = #args
+			local remoteName = SerdesLayer.WhatIsThis(v.remote, "id")
 
-				if BridgeObjects[remoteName] == nil then
-					continue
-					--error("[BridgeNet] Client received non-existant Bridge. Naming mismatch?")
+			if BridgeObjects[remoteName] == nil then
+				continue
+				--error("[BridgeNet] Client received non-existant Bridge. Naming mismatch?")
+			end
+
+			for i = 1, #args do
+				if args[i] == SerdesLayer.NilIdentifier then
+					args[i] = nil
 				end
+			end
 
-				for i = 1, #args do
-					if args[i] == serdeLayer.NilIdentifier then
-						args[i] = nil
-					end
-				end
-
-				if args[1] ~= InvokeReply then
-					for callback, timesConnected in pairs(BridgeObjects[remoteName]._connections) do
-						for _ = 1, timesConnected do
-							task.spawn(callback, unpack(args, 1, argCount))
-							if activeConfig.receive_function ~= nil then
-								task.spawn(activeConfig.receive_function, remoteName, unpack(args, 1, argCount))
-							end
+			if args[1] ~= InvokeReply then
+				for callback, timesConnected in pairs(BridgeObjects[remoteName]._connections) do
+					for _ = 1, timesConnected do
+						task.spawn(callback, unpack(args, 1, argCount))
+						if activeConfig.receive_function ~= nil then
+							task.spawn(activeConfig.receive_function, remoteName, unpack(args, 1, argCount))
 						end
 					end
-				elseif args[1] == InvokeReply then
-					local uuid = args[2]
-					table.remove(args, 1)
-					table.remove(args, 1)
-					argCount -= 2
-					task.spawn(threads[uuid], unpack(args, 1, argCount))
-					threads[uuid] = nil -- don't want a memory leak ;)
 				end
+			elseif args[1] == InvokeReply then
+				local uuid = args[2]
+				table.remove(args, 1)
+				table.remove(args, 1)
+				argCount -= 2
+				task.spawn(threads[uuid], unpack(args, 1, argCount))
+				threads[uuid] = nil -- don't want a memory leak ;)
 			end
-
-			ReceiveQueue = {}
 		end
+
+		ReceiveQueue = {}
 
 		debug.profileend()
 	end)
@@ -159,14 +153,14 @@ function ClientBridge.new(remoteName: string)
 	self._name = remoteName
 	self._connections = {}
 
-	self._id = serdeLayer.WhatIsThis(self._name, "compressed")
+	self._id = SerdesLayer.WhatIsThis(self._name, "compressed")
 	if self._id == nil then
 		task.spawn(function()
 			local timer = 0
 			local nextOutput = timer + 0.1
 			repeat
 				timer += task.wait()
-				self._id = serdeLayer.WhatIsThis(self._name, "compressed")
+				self._id = SerdesLayer.WhatIsThis(self._name, "compressed")
 				if timer > nextOutput then
 					nextOutput += 0.1
 					print("[BridgeNet] waiting for (" .. self._name .. ") to be replicated to the client")
@@ -204,7 +198,7 @@ end
 ]=]
 function ClientBridge:Fire(...: any)
 	if self._id == nil then
-		self._id = serdeLayer.WhatIsThis(self._name, "compressed")
+		self._id = SerdesLayer.WhatIsThis(self._name, "compressed")
 	end
 	table.insert(SendQueue, {
 		remote = self._id,
@@ -228,11 +222,11 @@ end
 ]=]
 function ClientBridge:InvokeServerAsync(...: any)
 	if self._id == nil then
-		self._id = serdeLayer.WhatIsThis(self._name, "compressed")
+		self._id = SerdesLayer.WhatIsThis(self._name, "compressed")
 	end
 
 	local thread = coroutine.running()
-	local uuid = serdeLayer.CreateUUID()
+	local uuid = SerdesLayer.CreateUUID()
 
 	threads[uuid] = thread
 
