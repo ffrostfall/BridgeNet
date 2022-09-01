@@ -1,3 +1,4 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local serdeLayer = require(script.serdeLayer)
@@ -244,6 +245,10 @@ return {
 			send_function = config[SendLogFunction],
 			receive_function = config[ReceiveLogFunction],
 		}
+
+		if not RunService:IsServer() then
+			ReplicatedStorage:WaitForChild("RemoteEvent") -- Quick hotfix to make sure that the server starts before the client.
+		end
 
 		serdeLayer._start()
 		Started:Fire()
