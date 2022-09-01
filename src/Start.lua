@@ -2,7 +2,6 @@ local RunService = game:GetService("RunService")
 
 local DefaultReceive = require(script.Parent.ConfigSymbols.DefaultReceive)
 local DefaultSend = require(script.Parent.ConfigSymbols.DefaultSend)
-local PrintRemotes = require(script.Parent.ConfigSymbols.PrintRemotes)
 local SendLogFunction = require(script.Parent.ConfigSymbols.SendLogFunction)
 local ReceiveLogFunction = require(script.Parent.ConfigSymbols.ReceiveLogFunction)
 
@@ -32,7 +31,6 @@ return function(config: { [any]: number | () -> any })
 	local configToSend = {
 		send_default_rate = config[DefaultSend] or 60,
 		receive_default_rate = config[DefaultReceive] or 60,
-		print_remotes = config[PrintRemotes],
 		send_function = config[SendLogFunction],
 		receive_function = config[ReceiveLogFunction],
 	}

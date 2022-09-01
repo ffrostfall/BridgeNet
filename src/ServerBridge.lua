@@ -78,7 +78,7 @@ function ServerBridge._start(config: config): nil
 				end
 			end
 
-			local obj = BridgeObjects[SerdesLayer.WhatIsThis(v.remote, "id")]
+			local obj = BridgeObjects[SerdesLayer.FromCompressed(v.remote)]
 			if obj == nil then
 				--Don't warn here because that's a vulnerability. We don't want exploiters
 				--lagging out the server over time with a pcall that warns every frame.
@@ -164,14 +164,12 @@ function ServerBridge._start(config: config): nil
 			end
 
 			if activeConfig.send_function ~= nil then
-				activeConfig.send_function(SerdesLayer.WhatIsThis(v.remote, "id"), v.plrs, table.unpack(v.args))
+				activeConfig.send_function(SerdesLayer.FromCompressed(v.remote), v.plrs, table.unpack(v.args))
 			end
 
 			if not v.invokeReply then
 				if v.plrs == "all" then
-					local tbl = {}
-
-					table.insert(tbl, v.remote)
+					local tbl = { v.remote }
 
 					for _, k in v.args do
 						table.insert(tbl, k)
@@ -184,9 +182,7 @@ function ServerBridge._start(config: config): nil
 							toSendPlayers[l] = {}
 						end
 
-						local tbl = {}
-
-						table.insert(tbl, v.remote)
+						local tbl = { v.remote }
 
 						for _, m in v.args do
 							table.insert(tbl, m)
@@ -199,9 +195,7 @@ function ServerBridge._start(config: config): nil
 						toSendPlayers[v.plrs] = {}
 					end
 
-					local tbl = {}
-
-					table.insert(tbl, v.remote)
+					local tbl = { v.remote }
 
 					for _, n in v.args do
 						table.insert(tbl, n)
@@ -214,11 +208,7 @@ function ServerBridge._start(config: config): nil
 					toSendPlayers[v.plrs] = {}
 				end
 
-				local tbl = {}
-
-				table.insert(tbl, v.remote)
-				table.insert(tbl, InvokeReply)
-				table.insert(tbl, v.uuid)
+				local tbl = { v.remote, InvokeReply, v.uuid }
 
 				for _, k in v.args do
 					table.insert(tbl, k)
@@ -235,7 +225,7 @@ function ServerBridge._start(config: config): nil
 			RemoteEvent:FireClient(l, k)
 		end
 		table.clear(SendQueue)
-		
+
 		if (time() - start) > 0.0005 then
 			ExceededTimeLimit:Fire(os.clock() - start)
 		end
@@ -532,7 +522,7 @@ end
 ]=]
 function ServerBridge:FireToMultiple(plrs: { Player }, ...: any): nil
 	assert(type(plrs) == "table", "[BridgeNet] First argument must be a table!")
-	
+
 	local args: { any } = { ... }
 	local toSend: queueSendPacket = {
 		plrs = plrs,

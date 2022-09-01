@@ -107,9 +107,14 @@ function SerdesLayer.WaitForIdentifier(id: string): string
 	return sendDict[id]
 end
 
-function SerdesLayer.GetRawIdentifierString(compressed: string)
+function SerdesLayer.FromCompressed(compressed: string)
 	return receiveDict[compressed]
 end
+
+function SerdesLayer.FromIdentifier(identifier: string)
+	return sendDict[identifier]
+end
+
 --[=[
 	Creates an identifier and associates it with a compressed value. This is shared between the server and the client.
 

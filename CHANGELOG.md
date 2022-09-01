@@ -2,7 +2,7 @@
 As of v2.0.0, this project now adheres to semver.
 
 ## 2.0.0-beta
-- Removed RateManager entirely
+- Removed rateManager entirely
 - Removed .CreateIdentifiersFromDictionary()
 - Removed .CreateBridgesFromDictionary()
 - Removed .WhatIsThis()
@@ -12,15 +12,19 @@ As of v2.0.0, this project now adheres to semver.
 - Added GetCompressedIdentifier
 - Added .Declare()
 - Added .Identifiers()
-- Added rate limiting- :SetMaxRatePerMin()
-- Each BridgeObject now has a variable rate it sends information at- 
+- Added .GetFromCompressed()
+- Added .GetFromIdentifier()
+- Each BridgeObject now has a variable rate it sends information at. This is by default 60, and can be changed with :SetReplicationRate().
+- BridgeNet.DefaultSend / BridgeNet.DefaultReceive are now the default replication rate.
 - A lot of functions are now modules that return a function
 - Repeat loops are now while loops
 - Reordered receive to happen first, and then send.
-- Renamed SerdeLayer to SerdesLayer
+- Renamed serdeLayer to SerdesLayer
 - Optimizations
 - Symbols are now loaded in via a module
 - Added hot reloading support(?)
+- Typings now use ``never`` and ``unknown`` types
+- Rewrote test code
 
 ## 1.9.9-beta
 - Functions that rely on .Start will yield until started

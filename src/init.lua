@@ -73,6 +73,7 @@ local Signal = require(script.Parent.GoodSignal)
 local Declare = require(script.Declare)
 local Start = require(script.Start)
 local Identifiers = require(script.Identifiers)
+local Bridge = require(script.Bridge)
 
 local Started = Signal.new()
 
@@ -85,8 +86,9 @@ end)
 
 return {
 	Declare = Declare,
+	Bridge = Bridge,
 	Identifiers = Identifiers,
-	
+
 	CreateIdentifier = SerdesLayer.CreateIdentifier,
 	DestroyIdentifier = SerdesLayer.DestroyIdentifier,
 

@@ -3,7 +3,6 @@ local RunService = game:GetService("RunService")
 
 local Promise = require(script.Parent.Parent.Promise)
 local SerdesLayer = require(script.Parent.SerdesLayer)
-local rateManager = require(script.Parent.rateManager)
 
 local RemoteEvent: RemoteEvent
 local Invoke: string
@@ -41,19 +40,24 @@ function ClientBridge._start(config)
 
 	RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvent")
 
-	rateManager.SetSendRate(config.send_default_rate)
-	rateManager.SetReceiveRate(config.receive_default_rate)
+	Invoke = SerdesLayer.FromIdentifier("Invoke")
+	InvokeReply = SerdesLayer.FromIdentifier("InvokeReply")
 
-	Invoke = SerdesLayer.WhatIsThis("Invoke", "compressed")
-	InvokeReply = SerdesLayer.WhatIsThis("InvokeReply", "compressed")
-
-	local lastSend = 0
-	local lastReceive = 0
 	RunService.Heartbeat:Connect(function()
 		debug.profilebegin("ClientBridge")
+		local currentTime = os.clock()
 
 		local toSend = {}
+		local replTicks = {}
 		for _, v in SendQueue do
+			if replTicks[v.replRate] then
+				if not ((currentTime - replTicks[v.replRate]) <= 1 / v.replRate) then
+					continue
+				end
+			else
+				replTicks[v.replRate] = currentTime
+			end
+
 			for i = 1, #v.args do
 				if v.args[i] == nil then
 					v.args[i] = SerdesLayer.NilIdentifier
@@ -76,7 +80,7 @@ function ClientBridge._start(config)
 				end
 
 				if activeConfig.send_function ~= nil then
-					activeConfig.send_function(SerdesLayer.WhatIsThis(v.remote, "id"), unpack(v.args))
+					activeConfig.send_function(SerdesLayer.FromCompressed(v.remote), unpack(v.args))
 				end
 
 				table.insert(toSend, tbl)
@@ -90,7 +94,7 @@ function ClientBridge._start(config)
 		for _, v in ReceiveQueue do
 			local args = v.args
 			local argCount = #args
-			local remoteName = SerdesLayer.WhatIsThis(v.remote, "id")
+			local remoteName = SerdesLayer.FromCompressed(v.remote)
 
 			if BridgeObjects[remoteName] == nil then
 				continue
@@ -153,14 +157,16 @@ function ClientBridge.new(remoteName: string)
 	self._name = remoteName
 	self._connections = {}
 
-	self._id = SerdesLayer.WhatIsThis(self._name, "compressed")
+	self._replRate = 60
+
+	self._id = SerdesLayer.FromIdentifier(self._name)
 	if self._id == nil then
 		task.spawn(function()
 			local timer = 0
 			local nextOutput = timer + 0.1
 			repeat
 				timer += task.wait()
-				self._id = SerdesLayer.WhatIsThis(self._name, "compressed")
+				self._id = SerdesLayer.FromIdentifier(self._name)
 				if timer > nextOutput then
 					nextOutput += 0.1
 					print("[BridgeNet] waiting for (" .. self._name .. ") to be replicated to the client")
@@ -198,12 +204,13 @@ end
 ]=]
 function ClientBridge:Fire(...: any)
 	if self._id == nil then
-		self._id = SerdesLayer.WhatIsThis(self._name, "compressed")
+		self._id = SerdesLayer.FromIdentifier(self._name)
 	end
 	table.insert(SendQueue, {
 		remote = self._id,
 		requestType = "send",
 		args = { ... },
+		replRate = self._replRate,
 	})
 end
 
@@ -222,7 +229,7 @@ end
 ]=]
 function ClientBridge:InvokeServerAsync(...: any)
 	if self._id == nil then
-		self._id = SerdesLayer.WhatIsThis(self._name, "compressed")
+		self._id = SerdesLayer.FromIdentifier(self._name)
 	end
 
 	local thread = coroutine.running()
@@ -235,6 +242,7 @@ function ClientBridge:InvokeServerAsync(...: any)
 		requestType = "invoke",
 		uuid = uuid,
 		args = { ... },
+		replRate = self._replRate,
 	})
 
 	local response = { coroutine.yield() }
