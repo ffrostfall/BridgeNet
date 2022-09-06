@@ -2,8 +2,7 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
-local serdeLayer = require(script.Parent.serdeLayer)
-local rateManager = require(script.Parent.rateManager)
+local SerdesLayer = require(script.Parent.SerdesLayer)
 local Signal = require(script.Parent.Parent.GoodSignal)
 
 type queueSendPacket = { plrs: string | Player | { Player }, remote: string, args: { any } }
@@ -56,18 +55,12 @@ function ServerBridge._start(config: config): nil
 	RemoteEvent.Name = "RemoteEvent"
 	RemoteEvent.Parent = ReplicatedStorage
 
-	Invoke = serdeLayer.CreateIdentifier("Invoke")
-	InvokeReply = serdeLayer.CreateIdentifier("InvokeReply")
-
-	rateManager.SetSendRate(activeConfig.send_default_rate)
-	rateManager.SetReceiveRate(activeConfig.receive_default_rate)
+	Invoke = SerdesLayer.CreateIdentifier("Invoke")
+	InvokeReply = SerdesLayer.CreateIdentifier("InvokeReply")
 
 	RunService.Heartbeat:Connect(function()
 		debug.profilebegin("ServerBridge")
 		local start = os.clock()
-
-		local sendRate = rateManager.GetSendRate()
-		local receiveRate = rateManager.GetReceiveRate()
 
 		--[[if (time() - lastClear) > 60 then
 			lastClear = time()
@@ -77,125 +70,23 @@ function ServerBridge._start(config: config): nil
 			end
 		end]]
 
-		if (time() - lastSend) >= sendRate then
-			lastSend = time()
-
-			local toSendAll = {}
-			local toSendPlayers = {}
-			for _, v in SendQueue do
-				for i = 1, #v.args do
-					if v.args[i] == nil then
-						v.args[i] = serdeLayer.NilIdentifier
-					end
-				end
-
-				if activeConfig.send_function ~= nil then
-					activeConfig.send_function(serdeLayer.WhatIsThis(v.remote, "id"), v.plrs, table.unpack(v.args))
-				end
-
-				if not v.invokeReply then
-					if v.plrs == "all" then
-						local tbl = {}
-
-						table.insert(tbl, v.remote)
-
-						for _, k in v.args do
-							table.insert(tbl, k)
-						end
-
-						table.insert(toSendAll, tbl)
-					elseif typeof(v.plrs) == "table" then
-						for _, l in v.plrs do
-							if toSendPlayers[l] == nil then
-								toSendPlayers[l] = {}
-							end
-
-							local tbl = {}
-
-							table.insert(tbl, v.remote)
-
-							for _, m in v.args do
-								table.insert(tbl, m)
-							end
-
-							table.insert(toSendPlayers[l], tbl)
-						end
-					else
-						if toSendPlayers[v.plrs] == nil then
-							toSendPlayers[v.plrs] = {}
-						end
-
-						local tbl = {}
-
-						table.insert(tbl, v.remote)
-
-						for _, n in v.args do
-							table.insert(tbl, n)
-						end
-
-						table.insert(toSendPlayers[v.plrs], tbl)
-					end
-				elseif v.invokeReply then
-					if toSendPlayers[v.plrs] == nil then
-						toSendPlayers[v.plrs] = {}
-					end
-
-					local tbl = {}
-
-					table.insert(tbl, v.remote)
-					table.insert(tbl, InvokeReply)
-					table.insert(tbl, v.uuid)
-
-					for _, k in v.args do
-						table.insert(tbl, k)
-					end
-
-					table.insert(toSendPlayers[v.plrs], tbl)
+		lastReceive = time()
+		for _, v in ReceiveQueue do
+			for i = 1, #v.args do
+				if v.args[i] == SerdesLayer.NilIdentifier then
+					v.args[i] = nil
 				end
 			end
 
-			if #toSendAll ~= 0 then
-				RemoteEvent:FireAllClients(toSendAll)
+			local obj = BridgeObjects[SerdesLayer.FromCompressed(v.remote)]
+			if obj == nil then
+				--Don't warn here because that's a vulnerability. We don't want exploiters
+				--lagging out the server over time with a pcall that warns every frame.
+				continue
 			end
-			for l, k in pairs(toSendPlayers) do
-				RemoteEvent:FireClient(l, k)
-			end
-			table.clear(SendQueue)
-		end
-
-		if (time() - lastReceive) >= receiveRate then
-			lastReceive = time()
-			for _, v in ReceiveQueue do
-				for i = 1, #v.args do
-					if v.args[i] == serdeLayer.NilIdentifier then
-						v.args[i] = nil
-					end
-				end
-
-				local obj = BridgeObjects[serdeLayer.WhatIsThis(v.remote, "id")]
-				if obj == nil then
-					--Don't warn here because that's a vulnerability. We don't want exploiters
-					--lagging out the server over time with a pcall that warns every frame.
-					continue
-				end
-				if v.args[1] == Invoke then
-					if obj._onInvoke ~= nil then
-						task.spawn(function()
-							local args = v.args
-							local uuid = args[2]
-
-							table.remove(args, 1)
-							table.remove(args, 1) -- Arg 2 becomes arg1 after arg1 is removed.
-							table.insert(SendQueue, {
-								plrs = v.plr,
-								remote = obj._id,
-								uuid = uuid,
-								invokeReply = true,
-								args = { obj._onInvoke(v.plr, unpack(v.args)) },
-							})
-						end)
-					else
-						-- onInvoke is not set s	end an error to the client
+			if v.args[1] == Invoke then
+				if obj._onInvoke ~= nil then
+					task.spawn(function()
 						local args = v.args
 						local uuid = args[2]
 
@@ -206,48 +97,136 @@ function ServerBridge._start(config: config): nil
 							remote = obj._id,
 							uuid = uuid,
 							invokeReply = true,
-							args = { "err", "onInvoke has not yet been registered on the server for " .. obj._name },
+							args = { obj._onInvoke(v.plr, unpack(v.args)) },
 						})
-					end
+					end)
 				else
-					debug.profilebegin(string.format("connections_%s", obj._name))
-					if activeConfig.receive_logging ~= nil then
-						activeConfig.receive_logging(v.plr, unpack(v.args))
-					end
+					-- onInvoke is not set s	end an error to the client
+					local args = v.args
+					local uuid = args[2]
 
-					for callback, timesConnected in obj._connections do
-						-- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
-						-- also for error protection
-						for _ = 1, timesConnected do
-							task.spawn(function()
-								local result
-								for _, func in obj._middlewareFunctions do
-									if result then
-										local potential = { func(table.unpack(result)) }
-										if #potential == 0 then
-											continue
-										end
-										result = potential
-									else
-										result = { func(table.unpack(v.args)) }
+					table.remove(args, 1)
+					table.remove(args, 1) -- Arg 2 becomes arg1 after arg1 is removed.
+					table.insert(SendQueue, {
+						plrs = v.plr,
+						remote = obj._id,
+						uuid = uuid,
+						invokeReply = true,
+						args = { "err", "onInvoke has not yet been registered on the server for " .. obj._name },
+					})
+				end
+			else
+				debug.profilebegin(string.format("connections_%s", obj._name))
+				if activeConfig.receive_logging ~= nil then
+					activeConfig.receive_logging(v.plr, unpack(v.args))
+				end
+
+				for callback, timesConnected in obj._connections do
+					-- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
+					-- also for error protection
+					for _ = 1, timesConnected do
+						task.spawn(function()
+							local result
+							for _, func in obj._middlewareFunctions do
+								if result then
+									local potential = { func(table.unpack(result)) }
+									if #potential == 0 then
+										continue
 									end
+									result = potential
+								else
+									result = { func(table.unpack(v.args)) }
 								end
+							end
 
-								if result == nil then
-									result = v.args
-								end
+							if result == nil then
+								result = v.args
+							end
 
-								callback(v.plr, table.unpack(result))
-							end)
-						end
+							callback(v.plr, table.unpack(result))
+						end)
 					end
-					debug.profileend()
+				end
+				debug.profileend()
+			end
+		end
+		table.clear(ReceiveQueue)
+
+		lastSend = time()
+
+		local toSendAll = {}
+		local toSendPlayers = {}
+		for _, v in SendQueue do
+			for i = 1, #v.args do
+				if v.args[i] == nil then
+					v.args[i] = SerdesLayer.NilIdentifier
 				end
 			end
-			table.clear(ReceiveQueue)
+
+			if activeConfig.send_function ~= nil then
+				activeConfig.send_function(SerdesLayer.FromCompressed(v.remote), v.plrs, table.unpack(v.args))
+			end
+
+			if not v.invokeReply then
+				if v.plrs == "all" then
+					local tbl = { v.remote }
+
+					for _, k in v.args do
+						table.insert(tbl, k)
+					end
+
+					table.insert(toSendAll, tbl)
+				elseif typeof(v.plrs) == "table" then
+					for _, l in v.plrs do
+						if toSendPlayers[l] == nil then
+							toSendPlayers[l] = {}
+						end
+
+						local tbl = { v.remote }
+
+						for _, m in v.args do
+							table.insert(tbl, m)
+						end
+
+						table.insert(toSendPlayers[l], tbl)
+					end
+				else
+					if toSendPlayers[v.plrs] == nil then
+						toSendPlayers[v.plrs] = {}
+					end
+
+					local tbl = { v.remote }
+
+					for _, n in v.args do
+						table.insert(tbl, n)
+					end
+
+					table.insert(toSendPlayers[v.plrs], tbl)
+				end
+			elseif v.invokeReply then
+				if toSendPlayers[v.plrs] == nil then
+					toSendPlayers[v.plrs] = {}
+				end
+
+				local tbl = { v.remote, InvokeReply, v.uuid }
+
+				for _, k in v.args do
+					table.insert(tbl, k)
+				end
+
+				table.insert(toSendAll, tbl)
+			end
 		end
 
-		if (os.clock() - start) > 0.0005 then
+		if #toSendAll ~= 0 then
+			RemoteEvent:FireAllClients(toSendAll)
+		end
+		for l, k in pairs(toSendPlayers) do
+			RemoteEvent:FireClient(l, k)
+		end
+		table.clear(SendQueue)
+
+		if (time() - start) > 0.0005 then
 			ExceededTimeLimit:Fire(os.clock() - start)
 		end
 
@@ -275,7 +254,7 @@ function ServerBridge._destroy()
 	RemoteEvent:Destroy()
 end
 
-function ServerBridge.new(remoteName: string, middlewareFunctions: { (() -> nil, ...any) -> nil })
+function ServerBridge.new(remoteName: string)
 	assert(type(remoteName) == "string", "[BridgeNet] Remote name must be a string")
 
 	local found = ServerBridge.from(remoteName)
@@ -297,9 +276,9 @@ function ServerBridge.new(remoteName: string, middlewareFunctions: { (() -> nil,
 		min = 0,
 	}
 
-	self._id = serdeLayer.CreateIdentifier(remoteName)
+	self._id = SerdesLayer.CreateIdentifier(remoteName)
 
-	self._middlewareFunctions = middlewareFunctions or {}
+	self._middlewareFunctions = {}
 
 	BridgeObjects[self._name] = self
 	return self
@@ -542,6 +521,8 @@ end
 	@return nil
 ]=]
 function ServerBridge:FireToMultiple(plrs: { Player }, ...: any): nil
+	assert(type(plrs) == "table", "[BridgeNet] First argument must be a table!")
+
 	local args: { any } = { ... }
 	local toSend: queueSendPacket = {
 		plrs = plrs,
@@ -551,42 +532,6 @@ function ServerBridge:FireToMultiple(plrs: { Player }, ...: any): nil
 	table.insert(SendQueue, toSend)
 	return nil
 end
-
---[[
-	Sets the rate limit, and allows handling when the limit is hit.
-	It's possible to override the rate limit with the rate limit handler.
-	
-	```lua
-	local Bridge = BridgeNet.CreateBridge("Remote")
-	Bridge:Ratelimit(20, function(sender, number)
-		if sender:GetRankInGroup(1234567) >= 60 then
-			return true -- Let them through, they're an admin.
-		else
-			return false
-		end
-	end)
-	```
-	
-	@param requestsPerMinute number
-	@param rateLimitHandler (sender: Player, requests: number) -> boolean?
-	@return nil
-]]
---[[function ServerBridge:Ratelimit(
-	requestsPerMinute: number,
-	rateLimitHandler: (sender: Player, requests: number) -> boolean?
-)
-	self._rateLimit = requestsPerMinute
-	self._rateHandler = rateLimitHandler
-		or function(sender, requests)
-			warn(
-				("Player %s is sending too many requests! Sent %c this minute, when the limit is %d per minute."):format(
-					sender.Name,
-					requests,
-					self._rateLimit
-				)
-			)
-		end
-end]]
 
 --[=[
 	Sets the Bridge's middleware functions. Any function which returns nil will drop the remote request completely. Overrides existing middleware.
@@ -724,7 +669,7 @@ end
 ]=]
 function ServerBridge:Destroy()
 	BridgeObjects[self._name] = nil
-	serdeLayer.DestroyIdentifier(self.Name)
+	SerdesLayer.DestroyIdentifier(self.Name)
 	for k, v in pairs(self) do
 		if v.Destroy ~= nil then
 			v:Destroy()

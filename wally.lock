@@ -9,7 +9,7 @@ dependencies = []
 
 [[package]]
 name = "ffrostflame/bridgenet"
-version = "1.7.5"
+version = "1.9.9"
 dependencies = [["GoodSignal", "stravant/goodsignal@0.2.1"], ["Promise", "evaera/promise@4.0.0"]]
 
 [[package]]

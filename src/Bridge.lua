@@ -1,13 +1,17 @@
 type config = {
 	maxRatePerMinute: number,
-	Middleware: { (...any) -> ...any },
+	Middleware: { (...unknown) -> ...any },
+	Rate: number,
 }
 
-return function(name: string, config: config)
+return function(config: config?)
+	if config == nil then
+		return { _isBridge = true }
+	end
 	return {
 		_isBridge = true,
-		middleware = config.Middleware,
-		rate = config.maxRatePerMinute,
-		name = name,
+		middleware = config["Middleware"],
+		rate = config["maxRatePerMinute"],
+		sendreceiverate = config["Rate"],
 	}
 end
