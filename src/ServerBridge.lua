@@ -202,28 +202,6 @@ function ServerBridge._start(config: config): nil
 					end
 
 					table.insert(toSendPlayers[v.plrs], tbl)
-<<<<<<< HEAD
-=======
-				end
-			end
-
-			if #toSendAll ~= 0 then
-				RemoteEvent:FireAllClients(toSendAll)
-			end
-			for l, k in pairs(toSendPlayers) do
-				RemoteEvent:FireClient(l, k)
-			end
-			table.clear(SendQueue)
-		end
-
-		if (time() - lastReceive) >= receiveRate then
-			lastReceive = time()
-			for _, v in ReceiveQueue do
-				for i = 1, #v.args do
-					if v.args[i] == serdeLayer.NilIdentifier then
-						v.args[i] = nil
-					end
->>>>>>> main
 				end
 			elseif v.invokeReply then
 				if toSendPlayers[v.plrs] == nil then
