@@ -8,14 +8,16 @@ local function search(name, v)
 
 	-- Server-only
 	if RunService:IsServer() then
-		if v.middleware then
+		if v["middleware"] then
 			bridge:SetMiddleware(v.middleware)
 		end
 	end
 
-	if v.rate then
+	if v["rate"] then
 		bridge:SetRate(v.rate)
 	end
+
+	ReturnValue = bridge
 
 	return ReturnValue
 end

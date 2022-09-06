@@ -3,8 +3,8 @@ local HttpService = game:GetService("HttpService")
 local ReplicatedStorage: ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService: RunService = game:GetService("RunService")
 
-local receiveDict: { [string]: string } = {}
-local sendDict: { [string]: string } = {}
+local receiveDict: { [string]: string? } = {}
+local sendDict: { [string]: string? } = {}
 local numOfSerials: number = 0
 
 --[=[
@@ -101,9 +101,9 @@ end
 function SerdesLayer.WaitForIdentifier(id: string): string
 	assert(not RunService:IsServer(), "WaitForIdentifier can only be called from the client!")
 
-	repeat
+	while sendDict[id] == nil do
 		task.wait()
-	until sendDict[id] ~= nil
+	end
 	return sendDict[id]
 end
 

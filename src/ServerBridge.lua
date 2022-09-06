@@ -533,42 +533,6 @@ function ServerBridge:FireToMultiple(plrs: { Player }, ...: any): nil
 	return nil
 end
 
---[[
-	Sets the rate limit, and allows handling when the limit is hit.
-	It's possible to override the rate limit with the rate limit handler.
-	
-	```lua
-	local Bridge = BridgeNet.CreateBridge("Remote")
-	Bridge:Ratelimit(20, function(sender, number)
-		if sender:GetRankInGroup(1234567) >= 60 then
-			return true -- Let them through, they're an admin.
-		else
-			return false
-		end
-	end)
-	```
-	
-	@param requestsPerMinute number
-	@param rateLimitHandler (sender: Player, requests: number) -> boolean?
-	@return nil
-]]
---[[function ServerBridge:Ratelimit(
-	requestsPerMinute: number,
-	rateLimitHandler: (sender: Player, requests: number) -> boolean?
-)
-	self._rateLimit = requestsPerMinute
-	self._rateHandler = rateLimitHandler
-		or function(sender, requests)
-			warn(
-				("Player %s is sending too many requests! Sent %c this minute, when the limit is %d per minute."):format(
-					sender.Name,
-					requests,
-					self._rateLimit
-				)
-			)
-		end
-end]]
-
 --[=[
 	Sets the Bridge's middleware functions. Any function which returns nil will drop the remote request completely. Overrides existing middleware.
 	

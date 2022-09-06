@@ -185,9 +185,9 @@ function ClientBridge.from(remoteName: string)
 end
 
 function ClientBridge.waitForBridge(remoteName: string)
-	repeat
+	while not BridgeObjects[remoteName] do
 		task.wait()
-	until BridgeObjects[remoteName]
+	end
 	return BridgeObjects[remoteName]
 end
 

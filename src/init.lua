@@ -107,9 +107,7 @@ return {
 
 	CreateBridge = function(str)
 		if not hasStarted then
-			repeat
-				task.wait()
-			until hasStarted
+			Started:Wait()
 		end
 		if isServer then
 			return ServerBridge.new(str)

@@ -2,6 +2,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local BridgeNet = require(ReplicatedStorage.Packages.BridgeNet)
 
+BridgeNet.Start({})
+
 local Bridges = BridgeNet.Declare({
 	RemoteA = BridgeNet.Bridge({}),
 	RemoteCategory = {
@@ -13,3 +15,9 @@ local Bridges = BridgeNet.Declare({
 		}),
 	},
 })
+
+Bridges.RemoteA:Connect(function(arg1)
+	print("received:")
+	print(arg1)
+	print("--------------")
+end)
