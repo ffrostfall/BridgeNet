@@ -2,7 +2,7 @@ return function()
 	local Symbols = {}
 
 	for k, v in script:GetChildren() do
-		Symbols[k] = v
+		Symbols[k] = require(v)
 	end
 
 	return Symbols

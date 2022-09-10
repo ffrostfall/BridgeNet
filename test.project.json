@@ -1,5 +1,5 @@
 {
-	"name": "BridgeNet",
+	"name": "bridgenet-test",
 	"tree": {
 		"$className": "DataModel",
 		"ReplicatedStorage": {
@@ -7,7 +7,7 @@
 			"Packages": {
 				"$path": "Packages",
 				"BridgeNet": {
-					"$path": "src"
+					"$path": "default.project.json"
 				}
 			}
 		},

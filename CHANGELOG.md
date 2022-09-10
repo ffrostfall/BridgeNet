@@ -1,6 +1,14 @@
 # Changelog
 As of v2.0.0, this project now adheres to semver.
 
+## 2.0.0-rc2
+- Middleware now is defaulted off if there's nothing in the table
+- Some small improvements
+- Renamed ``Declare`` to ``CreateBridgeTree``
+- Exposed the typings ``Bridge``, ``ClientBridge`` and ``ServerBridge`` to the user.
+- Added ``Bridge:SetReplicationRate()``
+- Started on a better way of doing releases for wally and non-wally. Kinda experimenting right now!
+
 ## 2.0.0-rc1
 - Removed rateManager entirely
 - Removed .CreateIdentifiersFromDictionary()

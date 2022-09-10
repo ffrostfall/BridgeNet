@@ -1,0 +1,15 @@
+{
+	"name": "bridgenet-publish",
+	"tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"Packages": {
+				"$path": "Packages",
+				"BridgeNet": {
+					"$path": "default.project.json"
+				}
+			}
+		}
+	}
+}

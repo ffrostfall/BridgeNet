@@ -5,7 +5,7 @@ local Players = game:GetService("Players")
 local SerdesLayer = require(script.Parent.SerdesLayer)
 local Signal = require(script.Parent.Parent.GoodSignal)
 
-type queueSendPacket = { plrs: string | Player | { Player }, remote: string, args: { any } }
+type queueSendPacket = { plrs: string | Player | { Player }, remote: string, args: { any }, replRate: number }
 type queueReceivePacket = { plr: Player, remote: string, args: { any } }
 type config = {
 	send_default_rate: number,
@@ -20,9 +20,6 @@ local SendQueue: { queueSendPacket } = {}
 local ReceiveQueue: { queueReceivePacket } = {}
 
 local BridgeObjects = {}
-
-local lastSend: number = 0
-local lastReceive: number = 0
 
 local RemoteEvent
 
@@ -58,6 +55,8 @@ function ServerBridge._start(config: config): nil
 	Invoke = SerdesLayer.CreateIdentifier("Invoke")
 	InvokeReply = SerdesLayer.CreateIdentifier("InvokeReply")
 
+	local replTicks = {}
+
 	RunService.Heartbeat:Connect(function()
 		debug.profilebegin("ServerBridge")
 		local start = os.clock()
@@ -70,7 +69,6 @@ function ServerBridge._start(config: config): nil
 			end
 		end]]
 
-		lastReceive = time()
 		for _, v in ReceiveQueue do
 			for i = 1, #v.args do
 				if v.args[i] == SerdesLayer.NilIdentifier then
@@ -126,24 +124,28 @@ function ServerBridge._start(config: config): nil
 					-- also for error protection
 					for _ = 1, timesConnected do
 						task.spawn(function()
-							local result
-							for _, func in obj._middlewareFunctions do
-								if result then
-									local potential = { func(table.unpack(result)) }
-									if #potential == 0 then
-										continue
+							if #obj._middlewareFunctions ~= 0 then
+								local result
+								for _, func in obj._middlewareFunctions do
+									if result then
+										local potential = { func(table.unpack(result)) }
+										if #potential == 0 then
+											continue
+										end
+										result = potential
+									else
+										result = { func(table.unpack(v.args)) }
 									end
-									result = potential
-								else
-									result = { func(table.unpack(v.args)) }
 								end
-							end
 
-							if result == nil then
-								result = v.args
-							end
+								if result == nil then
+									result = v.args
+								end
 
-							callback(v.plr, table.unpack(result))
+								callback(v.plr, table.unpack(result))
+							else
+								callback(v.plr, v.args)
+							end
 						end)
 					end
 				end
@@ -152,11 +154,18 @@ function ServerBridge._start(config: config): nil
 		end
 		table.clear(ReceiveQueue)
 
-		lastSend = time()
-
 		local toSendAll = {}
 		local toSendPlayers = {}
-		for _, v in SendQueue do
+		for _, v: queueSendPacket in SendQueue do
+			if replTicks[v.replRate] then
+				if not ((time() - replTicks[v.replRate]) >= (1 / v.replRate)) then
+					continue
+				end
+				replTicks[v.replRate] = time()
+			else
+				replTicks[v.replRate] = time()
+			end
+
 			for i = 1, #v.args do
 				if v.args[i] == nil then
 					v.args[i] = SerdesLayer.NilIdentifier
@@ -221,7 +230,7 @@ function ServerBridge._start(config: config): nil
 		if #toSendAll ~= 0 then
 			RemoteEvent:FireAllClients(toSendAll)
 		end
-		for l, k in pairs(toSendPlayers) do
+		for l, k in toSendPlayers do
 			RemoteEvent:FireClient(l, k)
 		end
 		table.clear(SendQueue)
@@ -269,6 +278,7 @@ function ServerBridge.new(remoteName: string)
 	self._onInvoke = nil
 	self._connections = {}
 
+	self._replRate = 60
 	self._rateLimit = nil
 	self._rateHandler = nil
 	self._rateInThisMinute = {
@@ -316,6 +326,7 @@ function ServerBridge:FireTo(plr: Player, ...: any)
 		plrs = plr,
 		remote = self._id,
 		args = args,
+		replRate = self._replRate,
 	}
 	table.insert(SendQueue, toSend)
 end
@@ -384,6 +395,7 @@ function ServerBridge:FireToAllExcept(blacklistedPlrs: Player | { Player }, ...:
 		plrs = toSend,
 		remote = self._id,
 		args = { ... },
+		replRate = self._replRate,
 	}
 	table.insert(SendQueue, toSendPacket)
 
@@ -440,6 +452,7 @@ function ServerBridge:FireAllInRangeExcept(
 		plrs = toSend,
 		remote = self._id,
 		args = { ... },
+		replRate = self._replRate,
 	}
 	table.insert(SendQueue, toSendPacket)
 
@@ -480,6 +493,7 @@ function ServerBridge:FireAllInRange(point: Vector3, range: number, ...: any): {
 		plrs = toSend,
 		remote = self._id,
 		args = { ... },
+		replRate = self._replRate,
 	}
 	table.insert(SendQueue, toSendPacket)
 
@@ -503,6 +517,7 @@ function ServerBridge:FireAll(...: any): nil
 		plrs = "all",
 		remote = self._id,
 		args = args,
+		replRate = self._replRate,
 	}
 	table.insert(SendQueue, toSend)
 	return nil
@@ -528,6 +543,7 @@ function ServerBridge:FireToMultiple(plrs: { Player }, ...: any): nil
 		plrs = plrs,
 		remote = self._id,
 		args = args,
+		replRate = self._replRate,
 	}
 	table.insert(SendQueue, toSend)
 	return nil
@@ -653,6 +669,10 @@ end
 ]]
 function ServerBridge:GetName()
 	return self._name
+end
+
+function ServerBridge:SetReplicationRate(number)
+	self._replRate = number
 end
 
 --[=[

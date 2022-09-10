@@ -4,7 +4,7 @@ local BridgeNet = require(ReplicatedStorage.Packages.BridgeNet)
 
 BridgeNet.Start({})
 
-local Bridges = BridgeNet.Declare({
+local Bridges = BridgeNet.CreateBridgeTree({
 	RemoteA = BridgeNet.Bridge({}),
 	RemoteCategory = {
 		RemoteB = BridgeNet.Bridge({

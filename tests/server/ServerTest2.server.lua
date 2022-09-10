@@ -4,7 +4,7 @@ local BridgeNet = require(ReplicatedStorage.Packages.BridgeNet)
 
 BridgeNet.Start({})
 
-local Bridges = BridgeNet.Declare({
+local Bridges = BridgeNet.CreateBridgeTree({
 	RemoteA = BridgeNet.Bridge({}),
 	RemoteCategory = {
 		RemoteB = BridgeNet.Bridge({}),
@@ -28,7 +28,7 @@ if Bridges.RemoteA["_id"] == nil and Bridges.RemoteA["_name"] == nil then
 	error(".Declare does not return a bridge")
 end
 
-while task.wait(5) do
+while task.wait(2) do
 	Bridges.RemoteA:FireAll("FireAll check")
 	Bridges.RemoteA:FireTo(game.Players:GetPlayers()[1], "FireTo check")
 end

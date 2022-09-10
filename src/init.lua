@@ -1,20 +1,20 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local SerdesLayer = require(script.SerdesLayer)
 local ServerBridge = require(script.ServerBridge)
 local ClientBridge = require(script.ClientBridge)
+local DefaultReceive = require(script.ConfigSymbols.DefaultReceive)
+local DefaultSend = require(script.ConfigSymbols.DefaultSend)
+local SendLogFunction = require(script.ConfigSymbols.SendLogFunction)
+local ReceiveLogFunction = require(script.ConfigSymbols.ReceiveLogFunction)
+local Signal = require(script.Parent.GoodSignal)
+local CreateBridgeTree = require(script.CreateBridgeTree)
+local Start = require(script.Start)
+local Identifiers = require(script.Identifiers)
+local Bridge = require(script.Bridge)
 
 local isServer = RunService:IsServer()
 local hasStarted = false
-
-type ClientBridgeDictionary = {
-	[string]: ClientBridge.ClientObject,
-}
-
-type ServerBridgeDictionary = {
-	[string]: ServerBridge.ServerObject,
-}
 
 --[=[
 	@class BridgeNet
@@ -66,16 +66,6 @@ type ServerBridgeDictionary = {
 	@return nil
 ]=]
 
-local DefaultReceive = require(script.ConfigSymbols.DefaultReceive)
-local DefaultSend = require(script.ConfigSymbols.DefaultSend)
-local SendLogFunction = require(script.ConfigSymbols.SendLogFunction)
-local ReceiveLogFunction = require(script.ConfigSymbols.ReceiveLogFunction)
-local Signal = require(script.Parent.GoodSignal)
-local Declare = require(script.Declare)
-local Start = require(script.Start)
-local Identifiers = require(script.Identifiers)
-local Bridge = require(script.Bridge)
-
 local Started = Signal.new()
 
 script.Destroying:Connect(function()
@@ -85,8 +75,13 @@ script.Destroying:Connect(function()
 	end
 end)
 
+export type ServerBridge = ServerBridge.ServerObject
+export type ClientBridge = ClientBridge.ClientObject
+
+export type Bridge = ServerBridge | ClientBridge
+
 return {
-	Declare = Declare,
+	CreateBridgeTree = CreateBridgeTree,
 	Bridge = Bridge,
 	Identifiers = Identifiers,
 

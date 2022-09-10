@@ -8,7 +8,7 @@ local RemoteEvent: RemoteEvent
 local Invoke: string
 local InvokeReply: string
 
-type sendPacketQueue = { remote: string, args: { any }, requestType: string, uuid: string? }
+type sendPacketQueue = { remote: string, args: { any }, requestType: string, replRate: number, uuid: string? }
 
 type receivePacketQueue = { remote: string, args: { any } }
 
@@ -49,7 +49,7 @@ function ClientBridge._start(config)
 
 		local toSend = {}
 		local replTicks = {}
-		for _, v in SendQueue do
+		for _, v: sendPacketQueue in SendQueue do
 			if replTicks[v.replRate] then
 				if not ((currentTime - replTicks[v.replRate]) <= 1 / v.replRate) then
 					continue
@@ -377,6 +377,10 @@ function ClientBridge:Destroy()
 		end
 	end
 	setmetatable(self, nil)
+end
+
+function ClientBridge:SetReplicationRate(replRate: number)
+	self._replRate = replRate
 end
 
 export type ClientObject = typeof(ClientBridge.new(""))
