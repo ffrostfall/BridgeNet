@@ -1,7 +1,7 @@
 type config = {
 	maxRatePerMinute: number,
 	Middleware: { (...unknown) -> ...any },
-	Rate: number,
+	ReplicationRate: number,
 }
 
 return function(config: config?)
@@ -12,6 +12,6 @@ return function(config: config?)
 		_isBridge = true,
 		middleware = config["Middleware"],
 		rate = config["maxRatePerMinute"],
-		sendreceiverate = config["Rate"],
+		replicationrate = config["ReplicationRate"],
 	}
 end

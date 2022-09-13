@@ -75,14 +75,17 @@ end
 	@return string
 ]=]
 function SerdesLayer.CreateIdentifier(id: string): string
-	if sendDict[id] then
-		return sendDict[id] or SerdesLayer.WaitForIdentifier(id)
+	assert(type(id) == "string", "ID must be a string")
+
+	if not sendDict[id] and not RunService:IsServer() then
+		return SerdesLayer.WaitForIdentifier(id)
+	elseif sendDict[id] and not RunService:IsServer() then
+		return sendDict[id]
 	end
 
 	assert(RunService:IsServer(), "You cannot create identifiers on the client.")
-	assert(type(id) == "string", "ID must be a string")
 
-	if numOfSerials > 65536 then
+	if numOfSerials >= 65536 then
 		error("Over the identification cap: " .. id)
 	end
 	numOfSerials += 1
@@ -99,8 +102,6 @@ function SerdesLayer.CreateIdentifier(id: string): string
 end
 
 function SerdesLayer.WaitForIdentifier(id: string): string
-	assert(not RunService:IsServer(), "WaitForIdentifier can only be called from the client!")
-
 	while sendDict[id] == nil do
 		task.wait()
 	end

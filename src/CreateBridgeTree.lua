@@ -14,7 +14,7 @@ local function search(name, v)
 	end
 
 	if v["rate"] then
-		bridge:SetRate(v.rate)
+		bridge:SetReplicationRate(v.replicationrate)
 	end
 
 	ReturnValue = bridge

@@ -95,6 +95,7 @@ function ServerBridge._start(config: config): nil
 							remote = obj._id,
 							uuid = uuid,
 							invokeReply = true,
+							replRate = 60,
 							args = { obj._onInvoke(v.plr, unpack(v.args)) },
 						})
 					end)
@@ -110,6 +111,7 @@ function ServerBridge._start(config: config): nil
 						remote = obj._id,
 						uuid = uuid,
 						invokeReply = true,
+						replRate = 60,
 						args = { "err", "onInvoke has not yet been registered on the server for " .. obj._name },
 					})
 				end
@@ -154,16 +156,26 @@ function ServerBridge._start(config: config): nil
 		end
 		table.clear(ReceiveQueue)
 
+		for k, v in replTicks do
+			if (start - replTicks[k].lastTime) >= (1 / k - 0.0015) then -- subtract so we don't accidentally wait an extra frame
+				v.isAllowed = true
+			else
+				v.isAllowed = false
+			end
+		end
+
 		local toSendAll = {}
 		local toSendPlayers = {}
 		for _, v: queueSendPacket in SendQueue do
 			if replTicks[v.replRate] then
-				if not ((time() - replTicks[v.replRate]) >= (1 / v.replRate)) then
+				if not replTicks[v.replRate].isAllowed then
 					continue
 				end
-				replTicks[v.replRate] = time()
 			else
-				replTicks[v.replRate] = time()
+				replTicks[v.replRate] = {
+					lastTime = start,
+					isAllowed = false,
+				}
 			end
 
 			for i = 1, #v.args do

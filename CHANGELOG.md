@@ -1,6 +1,13 @@
 # Changelog
 As of v2.0.0, this project now adheres to semver.
 
+## 2.0.0-rc3
+- Multiple :Fire()s can be sent in the same frame
+- Performance improvements
+- Bugfixes w/ SerdesLayer & replication
+- Added more test cases- 2.0.0 should be usable and more stable.
+- Fixed invokes
+
 ## 2.0.0-rc2
 - Middleware now is defaulted off if there's nothing in the table
 - Some small improvements
