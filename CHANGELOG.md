@@ -1,6 +1,9 @@
 # Changelog
 As of v2.0.0, this project now adheres to semver.
 
+## Unpacking Arguements for Server (PR)
+- unpacked arguements for recieving of events on server.
+
 ## 2.0.0-rc3
 - Multiple :Fire()s can be sent in the same frame
 - Performance improvements
