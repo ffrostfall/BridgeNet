@@ -61,7 +61,7 @@ function ServerBridge._start(config: config): nil
 
 	RunService.Heartbeat:Connect(function()
 		debug.profilebegin("ServerBridge")
-		local start = os.clock()
+		local currentTime = os.clock()
 
 		--[[if (time() - lastClear) > 60 then
 			lastClear = time()
@@ -158,27 +158,16 @@ function ServerBridge._start(config: config): nil
 		end
 		table.clear(ReceiveQueue)
 
-		for k, v in replTicks do
-			if (start - replTicks[k].lastTime) >= (1 / k - 0.0015) then -- subtract so we don't accidentally wait an extra frame
-				v.isAllowed = true
-			else
-				v.isAllowed = false
-			end
-		end
-
 		local toSendAll = {}
 		local toSendPlayers = {}
 		for _, v: queueSendPacket in SendQueue do
 			if replTicks[v.replRate] then
-				if not replTicks[v.replRate].isAllowed then
+				if ((currentTime - replTicks[v.replRate]) <= 1 / v.replRate) then
 					continue
 				end
-			else
-				replTicks[v.replRate] = {
-					lastTime = start,
-					isAllowed = false,
-				}
 			end
+			
+			replTicks[v.replRate] = currentTime
 
 			for i = 1, #v.args do
 				if v.args[i] == nil then
@@ -249,8 +238,8 @@ function ServerBridge._start(config: config): nil
 		end
 		table.clear(SendQueue)
 
-		if (time() - start) > 0.0005 then
-			ExceededTimeLimit:Fire(os.clock() - start)
+		if (time() - currentTime) > 0.0005 then
+			ExceededTimeLimit:Fire(os.clock() - currentTime)
 		end
 
 		debug.profileend()

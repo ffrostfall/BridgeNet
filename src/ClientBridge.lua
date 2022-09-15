@@ -53,12 +53,12 @@ function ClientBridge._start(config)
 		local replTicks = {}
 		for _, v: sendPacketQueue in SendQueue do
 			if replTicks[v.replRate] then
-				if not ((currentTime - replTicks[v.replRate]) <= 1 / v.replRate) then
+				if ((currentTime - replTicks[v.replRate]) <= 1 / v.replRate) then
 					continue
 				end
-			else
-				replTicks[v.replRate] = currentTime
 			end
+			
+			replTicks[v.replRate] = currentTime
 
 			for i = 1, #v.args do
 				if v.args[i] == nil then
