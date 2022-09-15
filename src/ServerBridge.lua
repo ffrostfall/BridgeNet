@@ -160,9 +160,12 @@ function ServerBridge._start(config: config): nil
 
 		local toSendAll = {}
 		local toSendPlayers = {}
+		local remainingQueue = {}
+
 		for _, v: queueSendPacket in SendQueue do
 			if replTicks[v.replRate] then
 				if ((currentTime - replTicks[v.replRate]) <= 1 / v.replRate) then
+					table.insert(remainingQueue, v)
 					continue
 				end
 			end
@@ -236,7 +239,7 @@ function ServerBridge._start(config: config): nil
 		for l, k in toSendPlayers do
 			RemoteEvent:FireClient(l, k)
 		end
-		table.clear(SendQueue)
+		SendQueue = remainingQueue
 
 		if (time() - currentTime) > 0.0005 then
 			ExceededTimeLimit:Fire(os.clock() - currentTime)

@@ -51,9 +51,12 @@ function ClientBridge._start(config)
 
 		local toSend = {}
 		local replTicks = {}
+		local remainingQueue = {}
+
 		for _, v: sendPacketQueue in SendQueue do
 			if replTicks[v.replRate] then
 				if ((currentTime - replTicks[v.replRate]) <= 1 / v.replRate) then
+					table.insert(remainingQueue, v)
 					continue
 				end
 			end
@@ -91,7 +94,7 @@ function ClientBridge._start(config)
 		if #toSend ~= 0 then
 			RemoteEvent:FireServer(toSend)
 		end
-		SendQueue = {}
+		SendQueue = remainingQueue
 
 		for _, v in ReceiveQueue do
 			local args = v.args
