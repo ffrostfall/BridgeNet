@@ -17,7 +17,7 @@ local ReceiveQueue: { receivePacketQueue } = {}
 
 local BridgeObjects = {}
 
-local activeConfig
+local activeConfig = {}
 
 local threads = {}
 
@@ -36,7 +36,9 @@ ClientBridge.__index = ClientBridge
 	@ignore
 ]=]
 function ClientBridge._start(config)
-	activeConfig = config
+	if config.send_default_rate then
+		activeConfig.send_default_rate = config.send_default_rate
+	end
 
 	RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvent")
 
@@ -158,7 +160,7 @@ function ClientBridge.new(remoteName: string)
 	self._name = remoteName
 	self._connections = {}
 
-	self._replRate = 60
+	self._replRate = activeConfig.send_default_rate or 60
 
 	self._id = SerdesLayer.FromIdentifier(self._name)
 	if self._id == nil then

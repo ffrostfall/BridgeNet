@@ -2,6 +2,7 @@ local RunService = game:GetService("RunService")
 
 local SendLogFunction = require(script.Parent.ConfigSymbols.SendLogFunction)
 local ReceiveLogFunction = require(script.Parent.ConfigSymbols.ReceiveLogFunction)
+local DefaultSend = require(script.Parent.ConfigSymbols.DefaultSend)
 
 local SerdesLayer = require(script.Parent.SerdesLayer)
 local ServerBridge = require(script.Parent.ServerBridge)
@@ -22,6 +23,7 @@ return function(config: { [any]: number | () -> any })
 	local configToSend = {
 		send_function = config[SendLogFunction],
 		receive_function = config[ReceiveLogFunction],
+		send_default_rate = config[DefaultSend],
 	}
 
 	SerdesLayer._start()

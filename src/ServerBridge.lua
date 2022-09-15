@@ -26,7 +26,7 @@ local RemoteEvent
 local Invoke
 local InvokeReply
 
-local activeConfig
+local activeConfig = {}
 
 local InternalError = Signal.new()
 local ExceededTimeLimit = Signal.new()
@@ -46,7 +46,9 @@ ServerBridge.__index = ServerBridge
 	@ignore
 ]=]
 function ServerBridge._start(config: config): nil
-	activeConfig = config
+	if config.send_default_rate then
+		activeConfig.send_default_rate = config.send_default_rate
+	end
 
 	RemoteEvent = Instance.new("RemoteEvent")
 	RemoteEvent.Name = "RemoteEvent"
@@ -95,7 +97,7 @@ function ServerBridge._start(config: config): nil
 							remote = obj._id,
 							uuid = uuid,
 							invokeReply = true,
-							replRate = 60,
+							replRate = activeConfig.send_default_rate or 60,
 							args = { obj._onInvoke(v.plr, unpack(v.args)) },
 						})
 					end)
@@ -111,7 +113,7 @@ function ServerBridge._start(config: config): nil
 						remote = obj._id,
 						uuid = uuid,
 						invokeReply = true,
-						replRate = 60,
+						replRate = activeConfig.send_default_rate or 60,
 						args = { "err", "onInvoke has not yet been registered on the server for " .. obj._name },
 					})
 				end
