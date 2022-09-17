@@ -146,7 +146,7 @@ function ServerBridge._start(config: config): nil
 
 								callback(v.plr, table.unpack(result))
 							else
-								callback(v.plr, v.args)
+								callback(v.plr, table.unpack(v.args))
 							end
 						end)
 					end
