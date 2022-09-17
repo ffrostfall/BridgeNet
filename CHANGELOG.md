@@ -1,7 +1,10 @@
 # Changelog
 As of v2.0.0, this project now adheres to semver.
 
-## Unpacking Arguements for Server (PR)
+## Using the Send rate that are set during BridgeNet.Start({}) (PR)
+- Using the Send rate that are set during BridgeNet.Start({})
+
+## Unpacking Arguements for Server Events (PR)
 - unpacked arguements for recieving of events on server.
 
 ## 2.0.0-rc3

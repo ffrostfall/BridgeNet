@@ -17,7 +17,7 @@ local ReceiveQueue: { receivePacketQueue } = {}
 
 local BridgeObjects = {}
 
-local activeConfig
+local activeConfig = {}
 
 local threads = {}
 
@@ -36,7 +36,9 @@ ClientBridge.__index = ClientBridge
 	@ignore
 ]=]
 function ClientBridge._start(config)
-	activeConfig = config
+	if config.send_default_rate then
+		activeConfig.send_default_rate = config.send_default_rate
+	end
 
 	RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvent")
 
@@ -49,14 +51,17 @@ function ClientBridge._start(config)
 
 		local toSend = {}
 		local replTicks = {}
+		local remainingQueue = {}
+
 		for _, v: sendPacketQueue in SendQueue do
 			if replTicks[v.replRate] then
-				if not ((currentTime - replTicks[v.replRate]) <= 1 / v.replRate) then
+				if ((currentTime - replTicks[v.replRate]) <= 1 / v.replRate) then
+					table.insert(remainingQueue, v)
 					continue
 				end
-			else
-				replTicks[v.replRate] = currentTime
 			end
+			
+			replTicks[v.replRate] = currentTime
 
 			for i = 1, #v.args do
 				if v.args[i] == nil then
@@ -89,7 +94,7 @@ function ClientBridge._start(config)
 		if #toSend ~= 0 then
 			RemoteEvent:FireServer(toSend)
 		end
-		SendQueue = {}
+		SendQueue = remainingQueue
 
 		for _, v in ReceiveQueue do
 			local args = v.args
@@ -158,7 +163,7 @@ function ClientBridge.new(remoteName: string)
 	self._name = remoteName
 	self._connections = {}
 
-	self._replRate = 60
+	self._replRate = activeConfig.send_default_rate or 60
 
 	self._id = SerdesLayer.FromIdentifier(self._name)
 	if self._id == nil then
