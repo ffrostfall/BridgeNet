@@ -15,6 +15,7 @@ local numOfSerials: number = 0
 local SerdesLayer = {}
 
 local AutoSerde: Folder = nil
+local isServer = RunService:IsServer()
 
 type toSend = string
 
@@ -23,19 +24,19 @@ SerdesLayer.NilIdentifier = "null"
 local function fromHex(toConvert: string): string
 	return string.gsub(toConvert, "..", function(cc)
 		return string.char(tonumber(cc, 16))
-	end)
+	end) :: string
 end
 
 local function toHex(toConvert: string): string
 	return string.gsub(toConvert, ".", function(c)
-		return string.format("%02X", string.byte(c))
-	end)
+		return string.format("%02X", string.byte(c :: any))
+	end) :: string
 end
 
 function SerdesLayer._start()
 	if RunService:IsClient() then
 		AutoSerde = ReplicatedStorage:WaitForChild("AutoSerde")
-		for _, v in ipairs(AutoSerde:GetChildren()) do
+		for _, v in AutoSerde:GetChildren() do
 			local strValue = v :: StringValue
 			sendDict[strValue.Name] = strValue.Value
 			receiveDict[strValue.Value] = strValue.Name
@@ -77,20 +78,18 @@ end
 function SerdesLayer.CreateIdentifier(id: string): string
 	assert(type(id) == "string", "ID must be a string")
 
-	if not sendDict[id] and not RunService:IsServer() then
+	if not sendDict[id] and not isServer then
 		return SerdesLayer.WaitForIdentifier(id)
-	elseif sendDict[id] and not RunService:IsServer() then
+	elseif sendDict[id] and not isServer then
 		return sendDict[id]
 	end
-
-	assert(RunService:IsServer(), "You cannot create identifiers on the client.")
 
 	if numOfSerials >= 65536 then
 		error("Over the identification cap: " .. id)
 	end
 	numOfSerials += 1
 
-	local StringValue = Instance.new("StringValue")
+	local StringValue: StringValue = Instance.new("StringValue")
 	StringValue.Name = id
 	StringValue.Value = string.pack("H", numOfSerials)
 	StringValue.Parent = AutoSerde
@@ -129,7 +128,7 @@ end
 	@return nil
 ]=]
 function SerdesLayer.DestroyIdentifier(id: string): nil
-	assert(RunService:IsServer(), "You cannot destroy identifiers on the client.")
+	assert(isServer, "You cannot destroy identifiers on the client.")
 	assert(type(id) == "string", "ID must be a string")
 
 	receiveDict[sendDict[id]] = nil
@@ -150,8 +149,8 @@ end
 	
 	@return string
 ]=]
-function SerdesLayer.CreateUUID()
-	return string.gsub(HttpService:GenerateGUID(false), "-", "")
+function SerdesLayer.CreateUUID(): string
+	return string.gsub(HttpService:GenerateGUID(false), "-", "") :: string
 end
 
 --[=[
@@ -165,6 +164,7 @@ end
 	@return string
 ]=]
 function SerdesLayer.PackUUID(uuid: string): string
+	assert(typeof(uuid) ~= "string", "[BridgeNet] uuid must be a string")
 	return fromHex(uuid)
 end
 
@@ -179,6 +179,7 @@ end
 	@return string
 ]=]
 function SerdesLayer.UnpackUUID(uuid: string): string
+	assert(typeof(uuid) ~= "string", "[BridgeNet] uuid must be a string")
 	return toHex(uuid)
 end
 
@@ -196,18 +197,23 @@ end
 	@return string
 ]=]
 function SerdesLayer.DictionaryToTable(dict: { [string]: any })
+	assert(typeof(dict) == "table", "[BridgeNet] dict must be a dictionary")
+	assert(getmetatable(dict) == nil, "[BridgeNet] Passed dictionary may not have a metatable")
+
 	local keys = {}
-	for key, _ in pairs(dict) do
+	for key, _ in dict do
 		table.insert(keys, key)
 	end
 
 	table.sort(keys, function(a, b)
 		return string.lower(a) < string.lower(b)
 	end)
+
 	local toReturn = {}
 	for _, v in keys do
 		table.insert(toReturn, dict[v])
 	end
+
 	return toReturn
 end
 

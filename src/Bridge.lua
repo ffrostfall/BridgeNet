@@ -1,6 +1,6 @@
 type config = {
 	maxRatePerMinute: number,
-	Middleware: { (...unknown) -> ...any },
+	Middleware: { (...any) -> ...any },
 	ReplicationRate: number,
 }
 

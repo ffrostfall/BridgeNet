@@ -1,11 +1,27 @@
 # Changelog
 As of v2.0.0, this project now adheres to semver.
 
-## Using the Send rate that are set during BridgeNet.Start({}) (PR)
-- Using the Send rate that are set during BridgeNet.Start({})
-
-## Unpacking Arguements for Server Events (PR)
-- unpacked arguements for recieving of events on server.
+## 2.0.0-rc4
+- Unpacked arguments on server receive (Thank you @MELON-Om4r)
+- Fixed numerous queue-related bugs
+- Invoke UUIDs are now packed for less network usage (34 bytes -> 18 bytes)
+- The Identifiers function is a closure again
+- Added outbound middleware
+- Added middleware to the client
+- Middleware now passes in the ``plr`` argument on the server
+- Overall middleware improvements
+- Client-sided improvements w/ connections
+- Added .GetQueue() for debugging purposes
+- General improvements to client receive
+- Added .ReplicationStep(rate) signal- you can now listen for when a certain replication tick occurs.
+- Temporarily removed warning signals until I can figure out a better way to add them, they're kind of a mess right now.
+- Removed config symbols
+- Removed logging features- it turns out I forgot to fully implement them, plus nobody used them.
+- **Removed BridgeNet.Start(), the module now runs when you require it for the first time.**
+- Removed :InvokeServer()
+- Removed both dependencies
+- Updated typescript port
+- Fixed Docusaurus dependency- oops.
 
 ## 2.0.0-rc3
 - Multiple :Fire()s can be sent in the same frame

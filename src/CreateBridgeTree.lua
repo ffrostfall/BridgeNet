@@ -13,7 +13,7 @@ local function search(name, v)
 		end
 	end
 
-	if v["rate"] then
+	if v["replicationrate"] then
 		bridge:SetReplicationRate(v.replicationrate)
 	end
 
@@ -25,7 +25,10 @@ end
 local function recursiveSearch(passedTable)
 	local ReturnValue = {}
 	for k, v in passedTable do
-		assert(type(v) == "table", "Everything in BridgeNet.Declare must be a dictionary or BridgeNet.Bridge()")
+		assert(
+			type(v) == "table",
+			"Everything in BridgeNet.CreateBridgeTree must be a dictionary or BridgeNet.Bridge()"
+		)
 
 		if v._isBridge == true then
 			ReturnValue[k] = search(k, v)

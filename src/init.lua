@@ -3,18 +3,10 @@ local RunService = game:GetService("RunService")
 local SerdesLayer = require(script.SerdesLayer)
 local ServerBridge = require(script.ServerBridge)
 local ClientBridge = require(script.ClientBridge)
-local DefaultReceive = require(script.ConfigSymbols.DefaultReceive)
-local DefaultSend = require(script.ConfigSymbols.DefaultSend)
-local SendLogFunction = require(script.ConfigSymbols.SendLogFunction)
-local ReceiveLogFunction = require(script.ConfigSymbols.ReceiveLogFunction)
-local Signal = require(script.Parent.GoodSignal)
 local CreateBridgeTree = require(script.CreateBridgeTree)
-local Start = require(script.Start)
-local Identifiers = require(script.Identifiers)
 local Bridge = require(script.Bridge)
 
 local isServer = RunService:IsServer()
-local hasStarted = false
 
 --[=[
 	@class BridgeNet
@@ -66,7 +58,10 @@ local hasStarted = false
 	@return nil
 ]=]
 
-local Started = Signal.new()
+export type ServerBridge = ServerBridge.ServerObject
+export type ClientBridge = ClientBridge.ClientObject
+
+export type Bridge = ServerBridge | ClientBridge
 
 script.Destroying:Connect(function()
 	SerdesLayer._destroy()
@@ -75,15 +70,28 @@ script.Destroying:Connect(function()
 	end
 end)
 
-export type ServerBridge = ServerBridge.ServerObject
-export type ClientBridge = ClientBridge.ClientObject
-
-export type Bridge = ServerBridge | ClientBridge
+SerdesLayer._start()
+if isServer then
+	ServerBridge._start()
+	return true
+else
+	ClientBridge._start()
+	return true
+end
 
 return {
 	CreateBridgeTree = CreateBridgeTree,
 	Bridge = Bridge,
-	Identifiers = Identifiers,
+
+	Identifiers = function(tbl: { string })
+		local ReturnValue = {}
+
+		for _, v in tbl do
+			ReturnValue[v] = SerdesLayer.CreateIdentifier(v)
+		end
+
+		return ReturnValue :: { [string]: string }
+	end,
 
 	CreateIdentifier = SerdesLayer.CreateIdentifier,
 	DestroyIdentifier = SerdesLayer.DestroyIdentifier,
@@ -94,27 +102,37 @@ return {
 
 	DictionaryToTable = SerdesLayer.DictionaryToTable,
 
-	Started = Started,
+	--[[LogNetTraffic = function(duration: number)
+		if isServer then
+			return ServerBridge._log(duration)
+		else
+			return ClientBridge._log(duration)
+		end
+	end,]]
 
-	SendLogFunction = SendLogFunction,
-	ReceiveLogFunction = ReceiveLogFunction,
-	DefaultReceive = DefaultReceive,
-	DefaultSend = DefaultSend,
+	GetReplicationStep = function(rate: number, func: () -> nil)
+		if isServer then
+			return ServerBridge._getReplicationStepSignal(rate, func)
+		else
+			return ClientBridge._getReplicationStepSignal(rate, func)
+		end
+	end,
+
+	GetQueue = function()
+		if isServer then
+			local send, receive = ServerBridge._returnQueue()
+			return send, receive
+		else
+			local send, receive = ClientBridge._returnQueue()
+			return send, receive
+		end
+	end,
 
 	CreateBridge = function(str)
-		if not hasStarted then
-			Started:Wait()
-		end
 		if isServer then
 			return ServerBridge.new(str)
 		else
 			return ClientBridge.new(str)
-		end
-	end,
-	Start = function(config: { [any]: number | () -> any })
-		if Start(config) then
-			Started:Fire()
-			hasStarted = true
 		end
 	end,
 }
