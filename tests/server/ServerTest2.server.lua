@@ -2,23 +2,26 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local BridgeNet = require(ReplicatedStorage.Packages.BridgeNet)
 
-BridgeNet.Start({})
-
 local RunService = game:GetService("RunService")
 
 local STRESS_TEST = false
 
-local Bridge = BridgeNet.CreateBridge("StressTest")
-
-if STRESS_TEST then
-	RunService.Heartbeat:Connect(function()
-		for _ = 1, 200 do
-			Bridge:FireAll()
-		end
-	end)
-end
-
 if not STRESS_TEST then
+	local uuid = BridgeNet.CreateUUID()
+	print(uuid)
+	local packed = BridgeNet.PackUUID(uuid)
+	print(packed)
+	print(BridgeNet.UnpackUUID(packed))
+
+	local Identifiers = BridgeNet.Identifiers({
+		"Test",
+		"Funny",
+		"Haha",
+		"TestB",
+		"yes",
+	})
+	print(Identifiers)
+
 	local Bridges = BridgeNet.CreateBridgeTree({
 		RemoteA = BridgeNet.Bridge({
 			ReplicationRate = 20,
@@ -57,12 +60,22 @@ if not STRESS_TEST then
 		print(plr, arg2)
 	end)
 
-	Bridges.RemoteCategory.RemoteB:SetMiddleware({
+	Bridges.RemoteCategory.RemoteB:SetInboundMiddleware({
 		function(...)
 			return ...
 		end,
 		function(...)
-			print("Middleware working")
+			print("Inbound Middleware working")
+			return ...
+		end,
+	})
+
+	Bridges.RemoteCategory.RemoteB:SetOutboundMiddleware({
+		function(...)
+			return ...
+		end,
+		function(...)
+			print("Outbound Middleware working")
 			return ...
 		end,
 	})
@@ -70,12 +83,23 @@ if not STRESS_TEST then
 	while task.wait(2) do
 		Bridges.RemoteA:FireAll("FireAll check")
 		Bridges.RemoteA:FireTo(game.Players:GetPlayers()[1], "FireTo check")
+		task.defer(function()
+			task.wait()
+			print(BridgeNet.GetQueue())
+		end)
 		Bridges.RemoteCategory.RemoteB:FireTo(game.Players:GetPlayers()[1], "Middleware check")
 
 		Bridges.RemoteCategory.RemoteAA:FireAll("Queueing test")
-		print(BridgeNet.GetQueue())
-		task.wait()
-		task.wait()
-		print(BridgeNet.GetQueue())
+
+		Bridges.RemoteA:FireAll("Rapid")
+		Bridges.RemoteA:FireAll("Succession")
+		Bridges.RemoteA:FireAll("Check")
 	end
+elseif STRESS_TEST then
+	local stresser = BridgeNet.CreateBridge("stresser")
+	RunService.Heartbeat:Connect(function()
+		for _ = 1, 200 do
+			stresser:FireAll()
+		end
+	end)
 end

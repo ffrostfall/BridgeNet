@@ -2,11 +2,24 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local BridgeNet = require(ReplicatedStorage.Packages.BridgeNet)
 
-BridgeNet.Start({})
-
 local STRESS_TEST = false
 
 if not STRESS_TEST then
+	local uuid = BridgeNet.CreateUUID()
+	print(uuid)
+	local packed = BridgeNet.PackUUID(uuid)
+	print(packed)
+	print(BridgeNet.UnpackUUID(packed))
+
+	local Identifiers = BridgeNet.Identifiers({
+		"Test",
+		"Funny",
+		"Haha",
+		"TestB",
+		"yes",
+	})
+	print(Identifiers)
+
 	local Bridges = BridgeNet.CreateBridgeTree({
 		RemoteA = BridgeNet.Bridge({
 			ReplicationRate = 20,
@@ -37,11 +50,41 @@ if not STRESS_TEST then
 		print(arg1)
 	end)
 
+	Bridges.RemoteCategory.RemoteB:SetInboundMiddleware({
+		function(...)
+			return ...
+		end,
+		function(...)
+			print("Inbound Middleware working")
+			return ...
+		end,
+	})
+
+	Bridges.RemoteCategory.RemoteB:SetOutboundMiddleware({
+		function(...)
+			return ...
+		end,
+		function(...)
+			print("Outbound Middleware working")
+			return ...
+		end,
+	})
+
+	Bridges.RemoteCategory.RemoteB:Connect(function() end)
+
+	local lastTwentyHz = 0
+	BridgeNet.ReplicationStep(20, function()
+		print(os.clock() - lastTwentyHz)
+		lastTwentyHz = os.clock()
+	end)
+
 	while true do
 		Bridges.RemoteCategory.RemoteB:Fire("client to server check")
-		Bridges.RemoteCategory.RemoteB:InvokeServer("Args working")
+		Bridges.RemoteCategory.RemoteB:InvokeServerAsync("Args working")
 		task.wait(2)
 	end
-else
-	local StressTest = BridgeNet.CreateBridge("StressTest")
+elseif STRESS_TEST then
+	local stresser = BridgeNet.CreateBridge("stresser")
+
+	stresser:Connect(function() end)
 end

@@ -164,7 +164,7 @@ end
 	@return string
 ]=]
 function SerdesLayer.PackUUID(uuid: string): string
-	assert(typeof(uuid) ~= "string", "[BridgeNet] uuid must be a string")
+	assert(typeof(uuid) == "string", "[BridgeNet] uuid must be a string")
 	return fromHex(uuid)
 end
 
@@ -179,7 +179,7 @@ end
 	@return string
 ]=]
 function SerdesLayer.UnpackUUID(uuid: string): string
-	assert(typeof(uuid) ~= "string", "[BridgeNet] uuid must be a string")
+	assert(typeof(uuid) == "string", "[BridgeNet] uuid must be a string")
 	return toHex(uuid)
 end
 

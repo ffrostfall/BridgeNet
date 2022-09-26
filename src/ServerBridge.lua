@@ -20,7 +20,6 @@ local replTicksSignal = {}
 
 local BridgeObjects = {}
 
-local activeLogger
 local RemoteEvent
 local Invoke
 local InvokeReply
@@ -124,35 +123,33 @@ function ServerBridge._start(): nil
 			else
 				debug.profilebegin(string.format("connections_%s", obj._name))
 
-				for callback, timesConnected in obj._connections do
+				for _, callback in obj._connections do
 					-- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
 					-- also for error protection
-					for _ = 1, timesConnected do
-						task.spawn(function()
-							if #obj._middlewareFunctions ~= 0 then
-								local result
-								for _, func in obj._middlewareFunctions do
-									if result then
-										local potential = { func(table.unpack(result)) }
-										if #potential == 0 then
-											continue
-										end
-										result = potential
-									else
-										result = { func(table.unpack(v.args)) }
+					task.spawn(function()
+						if #obj._inboundMiddleware ~= 0 then
+							local result
+							for _, func in obj._inboundMiddleware do
+								if result then
+									local potential = { func(table.unpack(result)) }
+									if #potential == 0 then
+										continue
 									end
+									result = potential
+								else
+									result = { func(table.unpack(v.args)) }
 								end
-
-								if result == nil then
-									result = v.args
-								end
-
-								callback(v.plr, table.unpack(result))
-							else
-								callback(v.plr, table.unpack(v.args))
 							end
-						end)
-					end
+
+							if result == nil then
+								result = v.args
+							end
+
+							callback(v.plr, table.unpack(result))
+						else
+							callback(v.plr, table.unpack(v.args))
+						end
+					end)
 				end
 
 				debug.profileend()
@@ -164,24 +161,36 @@ function ServerBridge._start(): nil
 		local toSendAll = {}
 		local toSendPlayers = {}
 		local remainingQueue = {}
+		local passingReplRates = {}
+
+		for i, v in remainingQueue do
+			if (currentTime - replTicks[v.replRate]) <= (1 / v.replRate - 0.003) then
+				table.insert(SendQueue, v)
+				continue
+			else
+				table.remove(remainingQueue, i)
+			end
+		end
 
 		for _, v: queueSendPacket in SendQueue do
 			if replTicks[v.replRate] then
 				-- subtract 0.003 to make sure we don't accidentally skip any frames due to rounding errors
 				if (currentTime - replTicks[v.replRate]) <= (1 / v.replRate - 0.003) then
-					table.insert(remainingQueue, v)
-					continue
+					passingReplRates[v.replRate] = true
+					if not passingReplRates[v.replRate] then
+						table.insert(remainingQueue, v)
+						continue
+					end
 				end
 			end
 
 			if replTicksSignal[v.replRate] == nil then
 				replTicksSignal[v.replRate] = {}
 			else
-				for _, callback: () -> nil in replTicksSignal do
+				for _, callback: () -> nil in replTicksSignal[v.replRate] do
 					task.spawn(callback)
 				end
 			end
-			replTicks[v.replRate] = currentTime
 
 			for i = 1, #v.args do
 				if v.args[i] == nil then
@@ -258,8 +267,12 @@ function ServerBridge._start(): nil
 		for l, k in toSendPlayers do
 			RemoteEvent:FireClient(l, k)
 		end
-		SendQueue = remainingQueue
+		table.clear(SendQueue)
 
+		for key, _ in passingReplRates do
+			passingReplRates[key] = false
+		end
+		
 		debug.profileend()
 	end)
 
@@ -633,7 +646,7 @@ end
 ]=]
 function ServerBridge:SetInboundMiddleware(middlewareTable: { (...any) -> nil })
 	assert(typeof(middlewareTable) == "table", "[BridgeNet] middlewareTable must be a table")
-	self._inbound = middlewareTable or {}
+	self._inboundMiddleware = middlewareTable or {}
 end
 
 --[=[
@@ -661,7 +674,7 @@ end
 ]=]
 function ServerBridge:SetOutboundMiddleware(middlewareTable: { (...any) -> nil })
 	assert(typeof(middlewareTable) == "table", "[BridgeNet] middlewareTable must be a table")
-	self._outbound = middlewareTable or {}
+	self._outboundMiddleware = middlewareTable or {}
 end
 
 --[=[

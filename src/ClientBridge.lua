@@ -16,6 +16,7 @@ local ReceiveQueue: { receivePacketQueue } = {}
 local BridgeObjects = {}
 
 local threads: { thread? } = {}
+local replTicksSignal = {}
 
 --[=[
 	@class ClientBridge
@@ -36,6 +37,8 @@ function ClientBridge._start()
 	Invoke = SerdesLayer.FromIdentifier("Invoke")
 	InvokeReply = SerdesLayer.FromIdentifier("InvokeReply")
 
+	local passingReplRates = {}
+
 	RunService.Heartbeat:Connect(function()
 		debug.profilebegin("ClientBridge")
 		local currentTime = os.clock()
@@ -44,11 +47,32 @@ function ClientBridge._start()
 		local replTicks = {}
 		local remainingQueue = {}
 
+		for i, v in remainingQueue do
+			if (currentTime - replTicks[v.replRate]) <= (1 / v.replRate - 0.003) then
+				table.insert(SendQueue, v)
+				continue
+			else
+				table.remove(remainingQueue, i)
+			end
+		end
+
 		for _, v: sendPacketQueue in SendQueue do
 			if replTicks[v.replRate] then
-				if (currentTime - replTicks[v.replRate]) <= 1 / v.replRate then
-					table.insert(remainingQueue, v)
-					continue
+				-- subtract 0.003 to make sure we don't accidentally skip any frames due to rounding errors
+				if (currentTime - replTicks[v.replRate]) <= (1 / v.replRate - 0.003) then
+					passingReplRates[v.replRate] = true
+					if not passingReplRates[v.replRate] then
+						table.insert(remainingQueue, v)
+						continue
+					end
+				end
+			end
+
+			if replTicksSignal[v.replRate] == nil then
+				replTicksSignal[v.replRate] = {}
+			else
+				for _, callback: () -> nil in replTicksSignal[v.replRate] do
+					task.spawn(callback)
 				end
 			end
 
@@ -123,35 +147,33 @@ function ClientBridge._start()
 			end
 
 			if args[1] ~= InvokeReply then
-				for callback, timesConnected in obj._connections do
+				for _, callback in obj._connections do
 					-- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
 					-- also for error protection
-					for _ = 1, timesConnected do
-						task.spawn(function()
-							if #obj._middlewareFunctions ~= 0 then
-								local result
-								for _, func in obj._middlewareFunctions do
-									if result then
-										local potential = { func(table.unpack(result)) }
-										if #potential == 0 then
-											continue
-										end
-										result = potential
-									else
-										result = { func(table.unpack(v.args)) }
+					task.spawn(function()
+						if #obj._inboundMiddleware ~= 0 then
+							local result
+							for _, func in obj._inboundMiddleware do
+								if result then
+									local potential = { func(table.unpack(result)) }
+									if #potential == 0 then
+										continue
 									end
+									result = potential
+								else
+									result = { func(table.unpack(v.args)) }
 								end
-
-								if result == nil then
-									result = v.args
-								end
-
-								callback(table.unpack(result))
-							else
-								callback(table.unpack(v.args))
 							end
-						end)
-					end
+
+							if result == nil then
+								result = v.args
+							end
+
+							callback(table.unpack(result))
+						else
+							callback(table.unpack(v.args))
+						end
+					end)
 				end
 			elseif args[1] == InvokeReply then
 				local uuid = SerdesLayer.UnpackUUID(args[2])
@@ -217,6 +239,16 @@ function ClientBridge.new(remoteName: string)
 
 	BridgeObjects[self._name] = self
 	return self
+end
+
+function ClientBridge._getReplicationStepSignal(rate: number, callback: () -> nil)
+	if replTicksSignal[rate] == nil then
+		replTicksSignal[rate] = {
+			callback,
+		}
+	else
+		table.insert(replTicksSignal[rate], callback)
+	end
 end
 
 function ClientBridge.from(remoteName: string)
@@ -374,17 +406,17 @@ end
 	@return nil
 ]=]
 function ClientBridge:SetReplicationRate(replRate: number)
-	assert(typeof(replRate) == "number", "")
+	assert(typeof(replRate) == "number", "[BridgeNet] replication rate must be a number")
 	self._replRate = replRate
 end
 
 function ClientBridge:SetOutboundMiddleware(middlewareTbl: { (plr: Player, ...any) -> ...any })
-	assert(typeof(middlewareTbl) ~= "table", "[BridgeNet] outbound middleware must be a table")
+	assert(typeof(middlewareTbl) == "table", "[BridgeNet] outbound middleware must be a table")
 	self._outboundMiddleware = middlewareTbl
 end
 
 function ClientBridge:SetInboundMiddleware(middlewareTbl: { (plr: Player, ...any) -> ...any })
-	assert(typeof(middlewareTbl) ~= "table", "[BridgeNet] inbound middleware must be a table")
+	assert(typeof(middlewareTbl) == "table", "[BridgeNet] inbound middleware must be a table")
 	self._inboundMiddleware = middlewareTbl
 end
 

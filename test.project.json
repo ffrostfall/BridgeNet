@@ -5,7 +5,7 @@
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
 			"Packages": {
-				"$path": "Packages",
+				"$className": "Folder",
 				"BridgeNet": {
 					"$path": "default.project.json"
 				}

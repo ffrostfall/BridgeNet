@@ -1,6 +1,9 @@
 # Changelog
 As of v2.0.0, this project now adheres to semver.
 
+## Unreleased
+- Added .ReplicationStep(rate) signal- you can now listen for when a certain replication tick occurs.
+
 ## 2.0.0-rc4
 - Unpacked arguments on server receive (Thank you @MELON-Om4r)
 - Fixed numerous queue-related bugs
@@ -13,7 +16,6 @@ As of v2.0.0, this project now adheres to semver.
 - Client-sided improvements w/ connections
 - Added .GetQueue() for debugging purposes
 - General improvements to client receive
-- Added .ReplicationStep(rate) signal- you can now listen for when a certain replication tick occurs.
 - Temporarily removed warning signals until I can figure out a better way to add them, they're kind of a mess right now.
 - Removed config symbols
 - Removed logging features- it turns out I forgot to fully implement them, plus nobody used them.

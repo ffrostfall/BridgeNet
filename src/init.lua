@@ -73,10 +73,8 @@ end)
 SerdesLayer._start()
 if isServer then
 	ServerBridge._start()
-	return true
 else
 	ClientBridge._start()
-	return true
 end
 
 return {
@@ -110,7 +108,7 @@ return {
 		end
 	end,]]
 
-	GetReplicationStep = function(rate: number, func: () -> nil)
+	ReplicationStep = function(rate: number, func: () -> nil)
 		if isServer then
 			return ServerBridge._getReplicationStepSignal(rate, func)
 		else
