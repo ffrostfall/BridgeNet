@@ -27,6 +27,54 @@ local function testDirectory(dir, options : options)
     return dirResults
 end
 
+local function isSuccessful(folder)
+    local numOfFails = 0
+    local numOfSuccess = 0
+
+    for name, value in folder do
+        if value.ok ~= nil then
+            if value.ok then
+                numOfSuccess += 1
+            else
+                numOfFails += 1 
+            end
+        else
+            local wins, fails = isSuccessful(value)
+            numOfSuccess = wins
+            numOfFails = fails
+        end
+    end
+
+    return numOfSuccess, numOfFails
+end
+
+
+local function readiyDirectory(dir, spaceStr)
+    local finalString = ""
+
+    for name, value in dir do
+
+        if value.ok ~= nil then
+            local marker = value.ok and "+" or "-"
+            finalString ..= "\n"
+            finalString ..= spaceStr..string.format("[%s] ", marker)
+            finalString ..= name
+        else
+            local wins, fails = isSuccessful(value)
+
+            local marker = fails > 0 and "-" or "+"
+
+            finalString ..= "\n"
+            finalString ..= spaceStr..string.format("[%s] ", marker)
+            finalString ..= name
+            finalString ..= readiyDirectory(value, spaceStr.."  ")
+        end
+    end
+
+    return finalString
+
+end
+
 local bootstrapper = {}
 
 function bootstrapper:start(configuration : {directories : {}, options : options})
@@ -35,5 +83,15 @@ function bootstrapper:start(configuration : {directories : {}, options : options
     for _, directory : Folder in configuration.directories do
         testResults[directory.Name] = testDirectory(directory:GetChildren(), configuration.options)
     end 
+
+    local finalString = "\nTesting results"
+
+    for dirName, dirValue in testResults do
+       finalString ..= "\n "
+       finalString ..= "[!] "..dirName
+       finalString ..= readiyDirectory(dirValue, "    ")
+    end
+
+    print(finalString)
 end
 return bootstrapper
