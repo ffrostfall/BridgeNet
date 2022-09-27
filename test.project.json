@@ -8,6 +8,9 @@
 				"$className": "Folder",
 				"BridgeNet": {
 					"$path": "default.project.json"
+				},
+				"Tester" : {
+					"$path" : "tests/framework"
 				}
 			}
 		},
