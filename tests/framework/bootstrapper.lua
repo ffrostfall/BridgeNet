@@ -8,7 +8,7 @@ local function testDirectory(dir: set<ModuleScript>, options: options)
 	local dirResults = {}
 
 	for _, child in dir do
-		if child:IsA("ModuleScript") then
+		if child:IsA("ModuleScript") and child.Name:match("%.spec&") then
 			local module = require(child)
 
 			dirResults[child.Name] = {}
