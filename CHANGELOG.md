@@ -1,8 +1,12 @@
 # Changelog
 As of v2.0.0, this project now adheres to semver.
 
-## Unreleased
-- Added .ReplicationStep(rate) signal- you can now listen for when a certain replication tick occurs.
+## 2.0.0
+- Added the separation of client/server middleware in CreateBridgeTree
+- Heavy optimization
+- New property for Bridge objects: NilAllowed.
+- Documentation!
+- Typescript port has been updated
 
 ## 2.0.0-rc4
 - Unpacked arguments on server receive (Thank you @MELON-Om4r)

@@ -4,7 +4,7 @@ local BridgeNet = require(ReplicatedStorage.Packages.BridgeNet)
 
 local RunService = game:GetService("RunService")
 
-local STRESS_TEST = false
+local STRESS_TEST = true
 
 if not STRESS_TEST then
 	local uuid = BridgeNet.CreateUUID()
@@ -30,7 +30,37 @@ if not STRESS_TEST then
 			RemoteAA = BridgeNet.Bridge({
 				ReplicationRate = 20,
 			}),
-			RemoteB = BridgeNet.Bridge({}),
+			RemoteB = BridgeNet.Bridge({
+				ReplicationRate = 45,
+				Server = {
+					OutboundMiddleware = {
+						function(...)
+							print("CreateBridgeTree server middleware outgoing")
+							return ...
+						end,
+					},
+					InboundMiddleware = {
+						function(plr, ...)
+							print("CreateBridgeTree server middleware inbound: " .. plr.Name)
+							return ...
+						end,
+					},
+				},
+				Client = {
+					OutboundMiddleware = {
+						function(...)
+							print("CreateBridgeTree client middleware outgoing")
+							return ...
+						end,
+					},
+					InboundMiddleware = {
+						function(...)
+							print("CreateBridgeTree client middleware inbound")
+							return ...
+						end,
+					},
+				},
+			}),
 			RemoteC = BridgeNet.Bridge({}),
 		},
 	})
@@ -59,26 +89,6 @@ if not STRESS_TEST then
 		print("Invoke working")
 		print(plr, arg2)
 	end)
-
-	Bridges.RemoteCategory.RemoteB:SetInboundMiddleware({
-		function(...)
-			return ...
-		end,
-		function(...)
-			print("Inbound Middleware working")
-			return ...
-		end,
-	})
-
-	Bridges.RemoteCategory.RemoteB:SetOutboundMiddleware({
-		function(...)
-			return ...
-		end,
-		function(...)
-			print("Outbound Middleware working")
-			return ...
-		end,
-	})
 
 	while task.wait(2) do
 		Bridges.RemoteA:FireAll("FireAll check")

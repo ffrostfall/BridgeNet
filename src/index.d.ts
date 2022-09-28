@@ -2,14 +2,6 @@ import type ClientBridge from './ClientBridge';
 import type ServerBridge from './ServerBridge';
 import type SerdesLayer from './SerdesLayer';
 
-type BridgeDictionary = {
-	string: [BridgeDictionary] | ClientBridge.CreateBridge | ServerBridge.CreateBridge
-}
-
-type StringDictionary = {
-	string: string | StringDictionary
-}
-
 interface BridgeNet {
 	CreateUUID: SerdesLayer.CreateUUID;
 	PackUUID: SerdesLayer.PackUUID;
@@ -17,6 +9,8 @@ interface BridgeNet {
 	DictionaryToTable: SerdesLayer.DictionaryToTable;
 
 	GetQueue: () => {unknown};
+	
+	ReplicationStep: (replicationRate: number, callback: () => void) => void;
 	
 	CreateBridge: ClientBridge.CreateBridge | ServerBridge.CreateBridge;
 }

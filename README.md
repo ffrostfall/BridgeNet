@@ -1,6 +1,9 @@
 <img width="128" src="https://devforum-uploads.s3.dualstack.us-east-2.amazonaws.com/uploads/original/4X/1/4/6/14624c95fe154206b1290b8172d31cdc06d2f274.png" />
 
 # BridgeNet
+
+<a href="https://www.npmjs.com/package/@rbxts/bridgenet"><img src="https://badge.fury.io/js/@rbxts%2Fnet.svg" alt="npm version" height="18"></a> <a href="https://wally.run/package/ffrostflame/bridgenet"><img src="https://img.shields.io/badge/wally%20package-3.0.1-red" height="18"/></a>
+
 Insanely optimized networking library for Roblox, with roblox-ts support.
 
 * [Documentation](https://ffrostflame.github.io/BridgeNet/)
@@ -8,8 +11,6 @@ Insanely optimized networking library for Roblox, with roblox-ts support.
 * [BridgeNet on Roblox Marketplace](https://www.roblox.com/library/10494533012/BridgeNet-v1-8-7-beta) (v1.8.7-beta)
 
 BridgeNet is a networking library bundled with features to make optimizations easier, alongside optimizing remote events itself. It also has numerous features such as `:FireAllInRange` and `:FireToMultiple`.
-
-If your game uses BridgeNet, please let me know! The amount of people using BridgeNet helps me realize how battle-tested it is and helps me develop the module. It also helps me know when to fully release!
 
 ## Features
 * Easy-to-use utility features such as `:FireAllInRange()`, `:FireAllExcept()`, `:FireMultiple()`
@@ -54,10 +55,6 @@ Because it's integral to your game's performance. Less data and fewer calls mean
 If you have a player cap on your game of 50, and each player is receiving 100 kilobytes per second, that means your server is sending 5,000 kilobytes per second. 5,000/1,000 (kilobytes in a megabyte) is 5, which means you have 5 megabytes being sent out per second. Now, we all know Roblox servers are suboptimal compared to your average dedicated game server. And 5 megabytes... isn’t that much nowadays, right?
 
 In the networking world, megabits are used to measure things like speed. One megabyte is 8 megabits, and things like speedtest.net use megabits (abbreviated as Mb). So, if your internet upload speed is 40 megabits per second, that means running your computer as a server for your Roblox game would result in your entire bandwith being taken up.
-
-(Take this with a grain of salt. I’m not 100% sure why BridgeNet performs better here) So another thing that BridgeNet does better is ordering. When Roblox sends out packets, it waits to make sure it’s done in the right order. 
-
-I’m pretty sure this is because Roblox orders each remote event individually, so when one doesn’t play nice or gets sent earlier, it stops and waits before resuming networking. So the more RemoteEvents that are fired/received, the higher the probability is it stops and waits. With BridgeNet, since it’s one remote call per frame, this isn’t an issue. Roblox already sends packets out per frame, so the big packets aren’t an issue.
 
 ## On the topic of networking, reliablity types are a must
 

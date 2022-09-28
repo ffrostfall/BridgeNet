@@ -107,6 +107,18 @@ function SerdesLayer.WaitForIdentifier(id: string): string
 	return sendDict[id]
 end
 
+--[=[
+	Retrieves the full version of a compressed string
+
+	```lua
+		BridgeNet.DestroyIdentifier("Something")
+		
+		print(BridgeNet.WhatIsThis("Something", "compressed")) -- Errors
+	```
+	
+	@param id string
+	@return nil
+]=]
 function SerdesLayer.FromCompressed(compressed: string)
 	return receiveDict[compressed]
 end

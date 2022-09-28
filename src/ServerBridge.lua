@@ -184,14 +184,6 @@ function ServerBridge._start(): nil
 				end
 			end
 
-			if replTicksSignal[v.replRate] == nil then
-				replTicksSignal[v.replRate] = {}
-			else
-				for _, callback: () -> nil in replTicksSignal[v.replRate] do
-					task.spawn(callback)
-				end
-			end
-
 			for i = 1, #v.args do
 				if v.args[i] == nil then
 					v.args[i] = SerdesLayer.NilIdentifier
@@ -267,6 +259,7 @@ function ServerBridge._start(): nil
 		for l, k in toSendPlayers do
 			RemoteEvent:FireClient(l, k)
 		end
+		
 		table.clear(SendQueue)
 
 		for key, _ in passingReplRates do

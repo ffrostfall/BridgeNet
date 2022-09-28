@@ -6,7 +6,9 @@ declare class ServerObject<T extends Array<unknown>> {
     FireAllInRangeExcept: (blacklistedPlayers: Array<Player>, point: Vector3, range: number, ...arguments: T) => Array<Player>;
     Connection: (callback: (...arguments: T) => never) => void;
     OnInvoke: (callback: (plr: Player, ...arguments: T) => void) => void;
-    SetReplicationRate: (rate: number) => void
+    SetReplicationRate: (rate: number) => void;
+    SetInboundMiddleware: ({}) => void;
+    SetOutboundMiddleware: ({}) => void;
 }
 
 declare namespace ServerBridge {

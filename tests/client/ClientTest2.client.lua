@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local BridgeNet = require(ReplicatedStorage.Packages.BridgeNet)
 
-local STRESS_TEST = false
+local STRESS_TEST = true
 
 if not STRESS_TEST then
 	local uuid = BridgeNet.CreateUUID()
@@ -25,7 +25,37 @@ if not STRESS_TEST then
 			ReplicationRate = 20,
 		}),
 		RemoteCategory = {
-			RemoteB = BridgeNet.Bridge({}),
+			RemoteB = BridgeNet.Bridge({
+				ReplicationRate = 45,
+				Server = {
+					OutboundMiddleware = {
+						function(...)
+							print("CreateBridgeTree server middleware outgoing")
+							return ...
+						end,
+					},
+					InboundMiddleware = {
+						function(plr, ...)
+							print("CreateBridgeTree server middleware inbound: " .. plr.Name)
+							return ...
+						end,
+					},
+				},
+				Client = {
+					OutboundMiddleware = {
+						function(...)
+							print("CreateBridgeTree client middleware outgoing")
+							return ...
+						end,
+					},
+					InboundMiddleware = {
+						function(...)
+							print("CreateBridgeTree client middleware inbound")
+							return ...
+						end,
+					},
+				},
+			}),
 			RemoteC = BridgeNet.Bridge({}),
 		},
 	})
@@ -46,29 +76,9 @@ if not STRESS_TEST then
 		error(".Declare does not return a bridge")
 	end
 
-	Bridges.RemoteA:Connect(function(arg1)
+	local connection = Bridges.RemoteA:Connect(function(arg1)
 		print(arg1)
 	end)
-
-	Bridges.RemoteCategory.RemoteB:SetInboundMiddleware({
-		function(...)
-			return ...
-		end,
-		function(...)
-			print("Inbound Middleware working")
-			return ...
-		end,
-	})
-
-	Bridges.RemoteCategory.RemoteB:SetOutboundMiddleware({
-		function(...)
-			return ...
-		end,
-		function(...)
-			print("Outbound Middleware working")
-			return ...
-		end,
-	})
 
 	Bridges.RemoteCategory.RemoteB:Connect(function() end)
 
@@ -76,6 +86,10 @@ if not STRESS_TEST then
 	BridgeNet.ReplicationStep(20, function()
 		print(os.clock() - lastTwentyHz)
 		lastTwentyHz = os.clock()
+	end)
+
+	task.delay(5, function()
+		connection:Disconnect()
 	end)
 
 	while true do
