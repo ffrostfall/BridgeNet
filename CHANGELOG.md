@@ -4,6 +4,7 @@ As of v2.0.0, this project now adheres to semver.
 ## 2.0.0
 - Added the separation of client/server middleware in CreateBridgeTree
 - Heavy optimization
+- Thread reuse has been added (client-receive only atm)
 - New property for Bridge objects: NilAllowed.
 - Documentation!
 - Typescript port has been updated

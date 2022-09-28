@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local BridgeNet = require(ReplicatedStorage.Packages.BridgeNet)
 
 local STRESS_TEST = true
+local BRIDGENET_OR_ROBLOX = "roblox"
 
 if not STRESS_TEST then
 	local uuid = BridgeNet.CreateUUID()
@@ -98,7 +99,13 @@ if not STRESS_TEST then
 		task.wait(2)
 	end
 elseif STRESS_TEST then
-	local stresser = BridgeNet.CreateBridge("stresser")
+	if BRIDGENET_OR_ROBLOX == "bridgenet" then
+		local stresser = BridgeNet.CreateBridge("stresser")
 
-	stresser:Connect(function() end)
+		stresser:Connect(function() end)
+	elseif BRIDGENET_OR_ROBLOX == "roblox" then
+		local stresser = ReplicatedStorage:WaitForChild("TestEvent")
+
+		stresser.OnClientEvent:Connect(function() end)
+	end
 end

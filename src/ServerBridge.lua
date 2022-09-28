@@ -14,15 +14,82 @@ type queueSendPacket = {
 }
 type queueReceivePacket = { plr: Player, remote: string, args: { any } }
 
+local FromCompressed = SerdesLayer.FromCompressed
+
 local SendQueue: { queueSendPacket } = {}
 local ReceiveQueue: { queueReceivePacket } = {}
-local replTicksSignal = {}
-
 local BridgeObjects = {}
-
 local RemoteEvent
 local Invoke
 local InvokeReply
+local freeThread
+
+local function functionPasser(fn, ...)
+	fn(...)
+end
+
+local function yielder()
+	while true do
+		functionPasser(coroutine.yield())
+	end
+end
+
+local function maybeSpawn(fn, ...)
+	if not freeThread then
+		freeThread = coroutine.create(yielder)
+		coroutine.resume(freeThread)
+	end
+	local acquiredThread = freeThread
+	freeThread = nil
+	task.spawn(acquiredThread, fn, ...)
+	freeThread = acquiredThread
+end
+
+local function spawnConnection(obj, v, callback)
+	local result
+	for _, func in obj._inboundMiddleware do
+		if result then
+			local potential = { func(v.plr, table.unpack(result)) }
+			if potential[1] == nil then
+				return
+			end
+			result = potential
+		else
+			result = { func(v.plr, table.unpack(v.args)) }
+		end
+	end
+
+	result = result or v.args
+
+	callback(v.plr, table.unpack(result))
+end
+
+local function spawnConnectionWithNil(obj, v, callback, argCount)
+	local result
+	for _, func in obj._inboundMiddleware do
+		if result then
+			local potential = { func(v.plr, table.unpack(result), 1, argCount) }
+			if potential[1] == nil then
+				return
+			end
+			result = potential
+		else
+			result = { func(v.plr, table.unpack(v.args, 1, argCount)) }
+		end
+	end
+
+	result = result or v.args
+
+	callback(v.plr, table.unpack(result))
+end
+
+local function spawnConnectionWithoutMiddleware(callback, v)
+	callback(v.plr, table.unpack(v.args))
+end
+
+local function spawnConnectionWithoutMiddlewareWithNil(callback, v, argCount)
+	callback(v.plr, table.unpack(v.args, 1, argCount))
+end
 
 local function deepCopy<originalType>(tbl): originalType
 	local result: originalType = {}
@@ -75,22 +142,23 @@ function ServerBridge._start(): nil
 		end]]
 
 		for _, v in ReceiveQueue do
+			local args = v.args
 			for i = 1, #v.args do
 				if v.args[i] == SerdesLayer.NilIdentifier then
 					v.args[i] = nil
 				end
 			end
 
-			local obj = BridgeObjects[SerdesLayer.FromCompressed(v.remote)]
+			local obj = BridgeObjects[FromCompressed(v.remote)]
 			if obj == nil then
-				--Don't warn here because that's a vulnerability. We don't want exploiters
-				--lagging out the server over time with a pcall that warns every frame.
 				continue
 			end
+
+			local allowsNil = obj._allowsNil
+
 			if v.args[1] == Invoke then
 				if obj._onInvoke ~= nil then
 					task.spawn(function()
-						local args = v.args
 						local uuid = args[2]
 
 						table.remove(args, 1)
@@ -105,8 +173,7 @@ function ServerBridge._start(): nil
 						})
 					end)
 				else
-					-- onInvoke is not set s	end an error to the client
-					local args = v.args
+					-- onInvoke is not set, send an error to the client
 					local uuid = args[2]
 
 					table.remove(args, 1)
@@ -120,39 +187,29 @@ function ServerBridge._start(): nil
 						args = { "err", "onInvoke has not yet been registered on the server for " .. obj._name },
 					})
 				end
-			else
-				debug.profilebegin(string.format("connections_%s", obj._name))
+				continue
+			end
 
-				for _, callback in obj._connections do
-					-- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
-					-- also for error protection
-					task.spawn(function()
-						if #obj._inboundMiddleware ~= 0 then
-							local result
-							for _, func in obj._inboundMiddleware do
-								if result then
-									local potential = { func(table.unpack(result)) }
-									if #potential == 0 then
-										continue
-									end
-									result = potential
-								else
-									result = { func(table.unpack(v.args)) }
-								end
-							end
-
-							if result == nil then
-								result = v.args
-							end
-
-							callback(v.plr, table.unpack(result))
-						else
-							callback(v.plr, table.unpack(v.args))
-						end
-					end)
+			if #obj._inboundMiddleware == 0 then
+				if allowsNil then
+					for _, callback in obj._connections do
+						maybeSpawn(spawnConnection, obj, v, callback)
+					end
+				else
+					for _, callback in obj._connections do
+						maybeSpawn(spawnConnectionWithNil, obj, v, callback)
+					end
 				end
-
-				debug.profileend()
+			else
+				if allowsNil then
+					for _, callback in obj._connections do
+						spawnConnectionWithoutMiddleware(callback, v)
+					end
+				else
+					for _, callback in obj._connections do
+						spawnConnectionWithoutMiddlewareWithNil(callback, v)
+					end
+				end
 			end
 		end
 
@@ -259,13 +316,13 @@ function ServerBridge._start(): nil
 		for l, k in toSendPlayers do
 			RemoteEvent:FireClient(l, k)
 		end
-		
+
 		table.clear(SendQueue)
 
 		for key, _ in passingReplRates do
 			passingReplRates[key] = false
 		end
-		
+
 		debug.profileend()
 	end)
 
@@ -284,16 +341,6 @@ function ServerBridge._start(): nil
 	end)
 
 	return nil
-end
-
-function ServerBridge._getReplicationStepSignal(rate: number, callback: () -> nil)
-	if replTicksSignal[rate] == nil then
-		replTicksSignal[rate] = {
-			callback,
-		}
-	else
-		table.insert(replTicksSignal[rate], callback)
-	end
 end
 
 function ServerBridge._returnQueue()

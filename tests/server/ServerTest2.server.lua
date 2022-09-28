@@ -5,6 +5,7 @@ local BridgeNet = require(ReplicatedStorage.Packages.BridgeNet)
 local RunService = game:GetService("RunService")
 
 local STRESS_TEST = true
+local BRIDGENET_OR_ROBLOX = "roblox"
 
 if not STRESS_TEST then
 	local uuid = BridgeNet.CreateUUID()
@@ -106,10 +107,22 @@ if not STRESS_TEST then
 		Bridges.RemoteA:FireAll("Check")
 	end
 elseif STRESS_TEST then
-	local stresser = BridgeNet.CreateBridge("stresser")
-	RunService.Heartbeat:Connect(function()
-		for _ = 1, 200 do
-			stresser:FireAll()
-		end
-	end)
+	if BRIDGENET_OR_ROBLOX == "roblox" then
+		local RemoteEvent = Instance.new("RemoteEvent")
+		RemoteEvent.Name = "TestEvent"
+		RemoteEvent.Parent = ReplicatedStorage
+
+		RunService.Heartbeat:Connect(function()
+			for _ = 1, 200 do
+				RemoteEvent:FireAllClients()
+			end
+		end)
+	else
+		local stresser = BridgeNet.CreateBridge("stresser")
+		RunService.Heartbeat:Connect(function()
+			for _ = 1, 200 do
+				stresser:FireAll()
+			end
+		end)
+	end
 end

@@ -3,24 +3,41 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local SerdesLayer = require(script.Parent.SerdesLayer)
-local ThreadRecycler = require(script.Parent.ThreadRecycler)
-
-local RemoteEvent: RemoteEvent
-local Invoke: string
-local InvokeReply: string
 
 type sendPacketQueue = { remote: string, args: { any }, requestType: string, replRate: number, uuid: string? }
 type receivePacketQueue = { remote: string, args: { any } }
 
+local RemoteEvent: RemoteEvent
+local Invoke: string
+local InvokeReply: string
 local SendQueue: { sendPacketQueue } = {}
 local ReceiveQueue: { receivePacketQueue } = {}
-
 local BridgeObjects = {}
-
 local threads: { thread? } = {}
-local replTicksSignal = {}
+local freeThread = nil
 
-local threadSingleton = ThreadRecycler.new()
+local FromCompressed = SerdesLayer.FromCompressed
+
+local function functionPasser(fn, ...)
+	fn(...)
+end
+
+local function yielder()
+	while true do
+		functionPasser(coroutine.yield())
+	end
+end
+
+local function maybeSpawn(fn, ...)
+	if not freeThread then
+		freeThread = coroutine.create(yielder)
+		coroutine.resume(freeThread)
+	end
+	local acquiredThread = freeThread
+	freeThread = nil
+	task.spawn(acquiredThread, fn, ...)
+	freeThread = acquiredThread
+end
 
 --[=[
 	@class ClientBridge
@@ -31,26 +48,49 @@ local ClientBridge = {}
 ClientBridge.__index = ClientBridge
 
 local function spawnConnection(obj, v, callback)
-	if #obj._inboundMiddleware ~= 0 then
-		local result
-		for _, func in obj._inboundMiddleware do
-			if result then
-				local potential = { func(table.unpack(result)) }
-				if #potential == 0 then
-					continue
-				end
-				result = potential
-			else
-				result = { func(table.unpack(v.args)) }
+	local result
+	for _, func in obj._inboundMiddleware do
+		if result then
+			local potential = { func(table.unpack(result)) }
+			if potential[1] == nil then
+				return
 			end
+			result = potential
+		else
+			result = { func(table.unpack(v.args)) }
 		end
-
-		result = result or v.args
-
-		callback(table.unpack(result))
-	else
-		callback(table.unpack(v.args))
 	end
+
+	result = result or v.args
+
+	callback(table.unpack(result))
+end
+
+local function spawnConnectionWithNil(obj, v, callback, argCount)
+	local result
+	for _, func in obj._inboundMiddleware do
+		if result then
+			local potential = { func(table.unpack(result), 1, argCount) }
+			if potential[1] == nil then
+				return
+			end
+			result = potential
+		else
+			result = { func(table.unpack(v.args, 1, argCount)) }
+		end
+	end
+
+	result = result or v.args
+
+	callback(table.unpack(result))
+end
+
+local function spawnConnectionWithoutMiddleware(callback, args)
+	callback(table.unpack(args))
+end
+
+local function spawnConnectionWithoutMiddlewareWithNil(callback, args, argCount)
+	callback(table.unpack(args), 1, argCount)
 end
 
 --[=[
@@ -72,14 +112,15 @@ function ClientBridge._start()
 
 		debug.profilebegin("HandleReceive")
 		for _, v in ReceiveQueue do
-			local obj = BridgeObjects[SerdesLayer.FromCompressed(v.remote)]
-			if obj == nil then
+			local obj = BridgeObjects[FromCompressed(v.remote)]
+			if not obj then
 				continue
 			end
 
 			local args = v.args
-			local argCount = #args
-			if obj._hasNil then
+			local allowsNil = obj._allowsNil
+
+			if allowsNil then
 				for i = 1, #args do
 					if args[i] == SerdesLayer.NilIdentifier then
 						args[i] = nil
@@ -87,22 +128,39 @@ function ClientBridge._start()
 				end
 			end
 
-			if args[1] ~= InvokeReply then
-				for _, callback in obj._connections do
-					-- Spawn a thread to be yield-safe. Potentially implement thread reusability for optimization later?
-					-- also for error protection
-					threadSingleton.Spawn(threadSingleton, spawnConnection, obj, v, callback)
-				end
-			elseif args[1] == InvokeReply then
+			if args[1] == InvokeReply then
+				local argCount = #args
 				local uuid = SerdesLayer.UnpackUUID(args[2])
 				table.remove(args, 1)
 				table.remove(args, 1)
 				argCount -= 2
 				task.spawn(threads[uuid], unpack(args, 1, argCount))
 				threads[uuid] = nil -- don't want a memory leak ;)
+				continue
+			end
+
+			if #obj._inboundMiddleware == 0 then
+				if allowsNil then
+					for _, callback in obj._connections do
+						maybeSpawn(spawnConnection, obj, args, callback)
+					end
+				else
+					for _, callback in obj._connections do
+						maybeSpawn(spawnConnectionWithNil, obj, args, callback)
+					end
+				end
+			else
+				if allowsNil then
+					for _, callback in obj._connections do
+						spawnConnectionWithoutMiddleware(callback, args)
+					end
+				else
+					for _, callback in obj._connections do
+						spawnConnectionWithoutMiddlewareWithNil(callback, args)
+					end
+				end
 			end
 		end
-
 		table.clear(ReceiveQueue)
 		debug.profileend()
 
@@ -129,14 +187,6 @@ function ClientBridge._start()
 						table.insert(remainingQueue, v)
 						continue
 					end
-				end
-			end
-
-			if replTicksSignal[v.replRate] == nil then
-				replTicksSignal[v.replRate] = {}
-			else
-				for _, callback: () -> nil in replTicksSignal[v.replRate] do
-					task.spawn(callback)
 				end
 			end
 
@@ -251,16 +301,6 @@ function ClientBridge.new(remoteName: string)
 	return self
 end
 
-function ClientBridge._getReplicationStepSignal(rate: number, callback: () -> nil)
-	if replTicksSignal[rate] == nil then
-		replTicksSignal[rate] = {
-			callback,
-		}
-	else
-		table.insert(replTicksSignal[rate], callback)
-	end
-end
-
 function ClientBridge.from(remoteName: string)
 	assert(type(remoteName) == "string", "[BridgeNet] Remote name must be a string")
 	return BridgeObjects[remoteName]
@@ -355,17 +395,13 @@ end
 ]=]
 function ClientBridge:Connect(func: (...any) -> nil)
 	assert(type(func) == "function", "[BridgeNet] Attempt to connect non-function to a Bridge")
-	local connectionUUID = SerdesLayer.CreateUUID()
-	self._connections[connectionUUID] = func
+	local stashedRef = func
 
-	local connection = {}
-
-	function connection.Disconnect()
-		self._connections[connectionUUID] = nil
-		connectionUUID = nil
+	local disconnect = function()
+		table.remove(self._connections, table.find(self._connections, stashedRef))
 	end
 
-	return connection
+	return disconnect
 end
 
 --[[
@@ -402,6 +438,7 @@ end
 	@return nil
 ]=]
 function ClientBridge:Once(func: (...any) -> nil)
+	assert(typeof(func) == "function", "[BridgeNet] :once() requires a function to be passed through")
 	local connection
 	connection = self:Connect(function(...)
 		connection:Disconnect()
@@ -448,11 +485,42 @@ function ClientBridge:SetOutboundMiddleware(middlewareTbl: { (plr: Player, ...an
 	self._outboundMiddleware = middlewareTbl
 end
 
+--[=[
+	Sets the Bridge's inbound middleware functions. Any function which returns nil will drop the remote request completely. Overrides existing middleware.
+	
+	Allows you to change arguments or drop remote calls.
+	
+	A more comprehensive guide on middleware will be coming soon.
+	```lua
+	Object:SetInboundMiddleware({
+		function(...) -- Called first
+			return ...
+		end,
+		function(...) -- Called second
+			print("1")
+			return ...
+		end,
+		function(...) -- Called third
+			print("2")
+			return ...
+		end,
+	})
+	```
+	
+	@param middlewareTable { (...any) -> nil }
+	@return nil
+]=]
 function ClientBridge:SetInboundMiddleware(middlewareTbl: { (plr: Player, ...any) -> ...any })
 	assert(typeof(middlewareTbl) == "table", "[BridgeNet] inbound middleware must be a table")
 	self._inboundMiddleware = middlewareTbl
 end
 
+--[=[
+	Allows nil parameters to be passed through without any weirdness. Does have a performance cost- this is off by default.
+	
+	@param allowed boolean
+	@return nil
+]=]
 function ClientBridge:SetNilAllowed(allowed: boolean)
 	assert(typeof(allowed) == "boolean", "[BridgeNet] cannot set nilAllowed to a non-bool")
 	self._nilAllowed = allowed
