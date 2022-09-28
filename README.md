@@ -7,8 +7,8 @@
 Insanely optimized networking library for Roblox, with roblox-ts support.
 
 * [Documentation](https://ffrostflame.github.io/BridgeNet/)
-* [Latest release](https://github.com/ffrostflame/BridgeNet/releases) (v1.9.8-beta)
-* [BridgeNet on Roblox Marketplace](https://www.roblox.com/library/10494533012/BridgeNet-v1-8-7-beta) (v1.8.7-beta)
+* [Latest release](https://github.com/ffrostflame/BridgeNet/releases) (v1.9.9-beta)
+* [BridgeNet on Roblox Marketplace](https://www.roblox.com/library/10494533012/BridgeNet-v1-8-7-beta) (v1.9.9-beta)
 
 BridgeNet is a networking library bundled with features to make optimizations easier, alongside optimizing remote events itself. It also has numerous features such as `:FireAllInRange` and `:FireToMultiple`.
 

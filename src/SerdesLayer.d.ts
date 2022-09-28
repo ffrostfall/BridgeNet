@@ -5,7 +5,7 @@ declare namespace serdeLayer {
 	export type PackUUID = (uuid: string) => string
 	export type UnpackUUID = (packedUUID: string) => string
 	
-	export type DictionaryToTable = ({unknown}) => {any}
+	export type DictionaryToTable = <A extends any>(dict: {[index: string]: A}) => Array<A>
 }
 
 export = serdeLayer
