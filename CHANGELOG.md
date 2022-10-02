@@ -8,6 +8,7 @@ As of v2.0.0, this project now adheres to semver.
 - New property for Bridge objects: NilAllowed.
 - Documentation!
 - Typescript port has been updated
+- SerdeLayer now uses attributes rather than StringValue instances
 
 ## 2.0.0-rc4
 - Unpacked arguments on server receive (Thank you @MELON-Om4r)
