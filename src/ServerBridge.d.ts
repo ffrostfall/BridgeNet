@@ -7,12 +7,25 @@ declare class ServerObject<T extends Array<unknown>> {
     Connection: (callback: (...arguments: T) => never) => void;
     OnInvoke: (callback: (plr: Player, ...arguments: T) => void) => void;
     SetReplicationRate: (rate: number) => void;
-    SetInboundMiddleware: ({}) => void;
-    SetOutboundMiddleware: ({}) => void;
+	SetOutboundMiddleware(middleware: Array<(previous: unknown) => unknown>): void
+    SetInboundMiddleware(middleware: Array<(previous: unknown) => unknown>): void
+	SetNilAllowed(allowed: boolean): void
 }
 
-declare namespace ServerBridge {
-	export type CreateBridge = <T extends Array<unknown>>(name: string) => ServerObject<T>
+declare class Connection {
+	Disconnect(): void
 }
 
-export = ServerBridge
+declare class clientBridge<inbound, outbound> {
+	Fire(outbound: outbound): void
+	Connect(inbound: inbound): Connection
+	Once(inbound: inbound): void
+	InvokeServerAsync<returnType>(arguments: Array<unknown>): returnType
+	SetReplicationRate(replicationRate: number): void
+	SetNilAllowed(allowed: boolean): void
+	SetOutboundMiddleware(middleware: Array<(previous: unknown) => unknown>): void
+	SetInboundMiddleware(middleware: Array<(previous: unknown) => unknown>): void
+	Destroy(): void
+}
+
+export = ServerObject

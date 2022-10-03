@@ -31,6 +31,10 @@ local function search(name, v)
 		bridge:SetReplicationRate(v.replicationrate)
 	end
 
+	if v["allowsnil"] then
+		bridge:SetNilAllowed(true)
+	end
+
 	ReturnValue = bridge
 
 	return ReturnValue

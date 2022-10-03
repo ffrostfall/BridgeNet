@@ -1,5 +1,6 @@
 type config = {
 	ReplicationRate: number?,
+	NilAllowed: boolean,
 	Server: {
 		InboundMiddleware: { (...any) -> ...any }?,
 		OutboundMiddleware: { (...any) -> ...any }?,
@@ -19,5 +20,6 @@ return function(config: config?)
 		server = config["Server"],
 		client = config["Client"],
 		replicationrate = config["ReplicationRate"],
+		allowsnil = config["NilAllowed"],
 	}
 end

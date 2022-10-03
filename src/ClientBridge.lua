@@ -47,7 +47,7 @@ end
 local ClientBridge = {}
 ClientBridge.__index = ClientBridge
 
-local function spawnConnection(obj, v, callback)
+local function Connection(obj, v, callback)
 	local result
 	for _, func in obj._inboundMiddleware do
 		if result then
@@ -66,7 +66,7 @@ local function spawnConnection(obj, v, callback)
 	callback(table.unpack(result))
 end
 
-local function spawnConnectionWithNil(obj, v, callback, argCount)
+local function ConnectionWithNil(obj, v, callback, argCount)
 	local result
 	for _, func in obj._inboundMiddleware do
 		if result then
@@ -85,11 +85,11 @@ local function spawnConnectionWithNil(obj, v, callback, argCount)
 	callback(table.unpack(result))
 end
 
-local function spawnConnectionWithoutMiddleware(callback, args)
+local function ConnectionWithoutMiddleware(callback, args)
 	callback(table.unpack(args))
 end
 
-local function spawnConnectionWithoutMiddlewareWithNil(callback, args, argCount)
+local function ConnectionWithoutMiddlewareWithNil(callback, args, argCount)
 	callback(table.unpack(args), 1, argCount)
 end
 
@@ -134,7 +134,7 @@ function ClientBridge._start()
 				table.remove(args, 1)
 				table.remove(args, 1)
 				argCount -= 2
-				task.spawn(threads[uuid], unpack(args, 1, argCount))
+				task.spawn(threads[uuid], table.unpack(args, 1, argCount))
 				threads[uuid] = nil -- don't want a memory leak ;)
 				continue
 			end
@@ -142,21 +142,21 @@ function ClientBridge._start()
 			if #obj._inboundMiddleware == 0 then
 				if allowsNil then
 					for _, callback in obj._connections do
-						maybeSpawn(spawnConnection, obj, args, callback)
+						maybeSpawn(Connection, obj, args, callback)
 					end
 				else
 					for _, callback in obj._connections do
-						maybeSpawn(spawnConnectionWithNil, obj, args, callback)
+						maybeSpawn(ConnectionWithNil, obj, args, callback, #args)
 					end
 				end
 			else
 				if allowsNil then
 					for _, callback in obj._connections do
-						spawnConnectionWithoutMiddleware(callback, args)
+						maybeSpawn(ConnectionWithoutMiddleware, callback, args)
 					end
 				else
 					for _, callback in obj._connections do
-						spawnConnectionWithoutMiddlewareWithNil(callback, args)
+						maybeSpawn(ConnectionWithoutMiddlewareWithNil, callback, args, #args)
 					end
 				end
 			end
@@ -208,7 +208,7 @@ function ClientBridge._start()
 				table.insert(toSend, tbl)
 			elseif v.requestType == "send" then
 				local tbl = { v.remote }
-				local bridgeObj = BridgeObjects[SerdesLayer.FromCompressed(v.remote)]
+				local bridgeObj = BridgeObjects[FromCompressed(v.remote)]
 
 				if not (#bridgeObj._outboundMiddleware == 0) then
 					local result

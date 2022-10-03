@@ -1,11 +1,17 @@
-declare class ClientObject<T extends Array<unknown>> {
-	Fire: (...arguments: T) => void;
-	Connection: (callback: (...arguments: T) => never) => void;
-	InvokeServerAsync: (...arguments: Array<unknown>) => Array<unknown>
+declare class Connection {
+	Disconnect(): void
 }
 
-declare namespace ClientBridge {
-	export type CreateBridge = <T extends Array<unknown>>(name: string) => ClientObject<T>
+declare class clientBridge<inbound extends Array<unknown>, outbound> {
+	Fire(outbound: outbound): void
+	Connect(...inbound: inbound): Connection
+	Once(...inbound: inbound): void
+	InvokeServerAsync(arguments): unknown
+	SetReplicationRate(replicationRate: number): void
+	SetNilAllowed(allowed: boolean): void
+	SetOutboundMiddleware(middleware: Array<(previous: unknown) => unknown>): void
+	SetInboundMiddleware(middleware: Array<(previous: unknown) => unknown>): void
+	Destroy(): void
 }
 
-export = ClientBridge
+export = clientBridge
