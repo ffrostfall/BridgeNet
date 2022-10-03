@@ -36,20 +36,20 @@ end
 function SerdesLayer._start()
 	if RunService:IsClient() then
 		AutoSerde = ReplicatedStorage:WaitForChild("AutoSerde")
-		for _, v in AutoSerde:GetChildren() do
-			local strValue = v :: StringValue
-			sendDict[strValue.Name] = strValue.Value
-			receiveDict[strValue.Value] = strValue.Name
+		for id, value in AutoSerde:GetAttributes() do
+			sendDict[id] = value
+			receiveDict[value] = id
 		end
-		AutoSerde.ChildAdded:Connect(function(child: Instance)
-			local strValue = child :: StringValue
-			sendDict[strValue.Name] = strValue.Value
-			receiveDict[strValue.Value] = strValue.Name
-		end)
-		AutoSerde.ChildRemoved:Connect(function(child: Instance)
-			local strValue = child :: StringValue
-			sendDict[strValue.Name] = nil
-			receiveDict[strValue.Value] = nil
+		AutoSerde.AttributeChanged:Connect(function(id: string)
+			local packed: string = AutoSerde:GetAttribute(id)
+			if packed then
+				sendDict[id] = packed
+				receiveDict[packed] = id
+			else
+				local oldValue = sendDict[id]
+				sendDict[id] = nil
+				receiveDict[oldValue] = nil
+			end
 		end)
 	else
 		AutoSerde = Instance.new("Folder")
@@ -89,15 +89,13 @@ function SerdesLayer.CreateIdentifier(id: string): string
 	end
 	numOfSerials += 1
 
-	local StringValue: StringValue = Instance.new("StringValue")
-	StringValue.Name = id
-	StringValue.Value = string.pack("H", numOfSerials)
-	StringValue.Parent = AutoSerde
+	local packed: string = string.pack("H", numOfSerials)
+	AutoSerde:SetAttribute(id, packed)
 
-	sendDict[id] = StringValue.Value
-	receiveDict[StringValue.Value] = id
+	sendDict[id] = packed
+	receiveDict[packed] = id
 
-	return StringValue.Value
+	return packed
 end
 
 function SerdesLayer.WaitForIdentifier(id: string): string
@@ -148,7 +146,7 @@ function SerdesLayer.DestroyIdentifier(id: string): nil
 
 	numOfSerials -= 1
 
-	AutoSerde:FindFirstChild(id):Destroy()
+	AutoSerde:SetAttribute(id, nil)
 	return nil
 end
 
