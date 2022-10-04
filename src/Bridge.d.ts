@@ -1,8 +1,19 @@
+import clientBridge from 'ClientBridge';
+import serverBridge from 'ServerBridge';
+
 type config = {
-	Middleware: { (...unknown): unknown },
-	ReplicationRate: number,
+	ReplicationRate?: number,
+	AllowsNil?: boolean,
+	Client: {
+		InboundMiddleware?: Array<(previous: unknown) => unknown>
+		OutboundMiddleware?: Array<(previous: unknown) => unknown>
+	},
+	Server: {
+		InboundMiddleware?: Array<(previous: unknown) => unknown>
+		OutboundMiddleware?: Array<(previous: unknown) => unknown>
+	}
 }
 
-type Bridge = (ReplicationRate: number, Middleware: { (...any): unknown }) => config
+type bridgeconf = <inbound extends unknown[], outbound extends unknown[]> (config: config) => clientBridge<inbound, outbound> | serverBridge<inbound, outbound>
 
-export = Bridge
+export = bridgeconf

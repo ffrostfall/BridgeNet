@@ -186,14 +186,6 @@ return {
 		end
 	end,]]
 
-	ReplicationStep = function(rate: number, func: () -> nil)
-		if isServer then
-			return ServerBridge._getReplicationStepSignal(rate, func)
-		else
-			return ClientBridge._getReplicationStepSignal(rate, func)
-		end
-	end,
-
 	GetQueue = function()
 		if isServer then
 			local send, receive = ServerBridge._returnQueue()

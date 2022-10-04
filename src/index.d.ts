@@ -1,6 +1,6 @@
-import type ClientBridge from './ClientBridge';
-import type ServerBridge from './ServerBridge';
 import type SerdesLayer from './SerdesLayer';
+import serverBridge from './ServerBridge';
+import clientBridge from './ClientBridge';
 
 interface BridgeNet {
 	CreateUUID: SerdesLayer.CreateUUID;
@@ -8,11 +8,11 @@ interface BridgeNet {
 	UnpackUUID: SerdesLayer.UnpackUUID;
 	DictionaryToTable: SerdesLayer.DictionaryToTable;
 
+	Identifiers: SerdesLayer.Identifiers;
+	
 	GetQueue: () => {unknown};
 	
-	ReplicationStep: (replicationRate: number, callback: () => void) => void;
-	
-	CreateBridge: ClientBridge.CreateBridge | ServerBridge.CreateBridge;
+	CreateBridge: <inbound extends Array <unknown>, outbound extends Array<unknown>>() => serverBridge<inbound, outbound> | clientBridge<inbound, outbound>
 }
 
 export = BridgeNet;

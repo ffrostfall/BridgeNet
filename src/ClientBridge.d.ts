@@ -2,8 +2,8 @@ declare class Connection {
 	Disconnect(): void
 }
 
-declare class clientBridge<inbound extends Array<unknown>, outbound> {
-	Fire(outbound: outbound): void
+declare class clientBridge<inbound extends Array<unknown>, outbound extends Array<unknown>> {
+	Fire(...outbound: outbound): void
 	Connect(...inbound: inbound): Connection
 	Once(...inbound: inbound): void
 	InvokeServerAsync(arguments): unknown
