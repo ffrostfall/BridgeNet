@@ -1,6 +1,6 @@
 {
   "name": "@rbxts/bridgenet",
-  "version": "2.0.0-rc1",
+  "version": "2.0.0-rc4",
   "description": "A networking library for Roblox",
   "main": "src/init.lua",
   "repository": "https://github.com/ffrostflame/BridgeNet",
