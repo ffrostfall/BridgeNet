@@ -2,8 +2,6 @@
 
 # BridgeNet
 
-<a href="https://www.npmjs.com/package/@rbxts/bridgenet"><img src="https://badge.fury.io/js/@rbxts%2Fnet.svg" alt="npm version" height="18"></a> <a href="https://wally.run/package/ffrostflame/bridgenet"><img src="https://img.shields.io/badge/wally%20package-3.0.1-red" height="18"/></a>
-
 Insanely optimized networking library for Roblox, with roblox-ts support.
 
 * [Documentation](https://ffrostflame.github.io/BridgeNet/)
