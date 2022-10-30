@@ -16,11 +16,8 @@ trying to be as non-intrusive as possible.
 - Dynamically creating RemoteEvents while keeping all the above features
 
 ## Upcoming features (order = priority)
-- Support for rate limiting and middleware
+- Support for rate limiting
 - Typechecking
-- Easy logging support
-- RemoteFunction-esque functions (this would support promises)
-- Using attributes instead of value objects
 
 ## Prior art
 - RbxNet

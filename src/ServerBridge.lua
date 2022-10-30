@@ -789,10 +789,11 @@ end
 --[=[
 	Sets the rate of which the Bridge sends and receives data.
 	
+	@param rate number
 	@return nil
 ]=]
-function ServerBridge:SetReplicationRate(number)
-	self._replRate = number
+function ServerBridge:SetReplicationRate(rate: number)
+	self._replRate = rate
 end
 
 --[=[

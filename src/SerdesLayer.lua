@@ -108,31 +108,25 @@ end
 --[=[
 	Retrieves the full version of a compressed string
 
-	```lua
-		BridgeNet.DestroyIdentifier("Something")
-		
-		print(BridgeNet.WhatIsThis("Something", "compressed")) -- Errors
-	```
-	
-	@param id string
-	@return nil
+	@param compressed string
+	@return string
 ]=]
 function SerdesLayer.FromCompressed(compressed: string)
 	return receiveDict[compressed]
 end
 
+--[=[
+	Retrieves the compressed version of an identifier string
+	
+	@param identifier string
+	@return string
+]=]
 function SerdesLayer.FromIdentifier(identifier: string)
 	return sendDict[identifier]
 end
 
 --[=[
 	Creates an identifier and associates it with a compressed value. This is shared between the server and the client.
-
-	```lua
-		BridgeNet.DestroyIdentifier("Something")
-		
-		print(BridgeNet.WhatIsThis("Something", "compressed")) -- Errors
-	```
 	
 	@param id string
 	@return nil

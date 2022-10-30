@@ -291,7 +291,7 @@ function ClientBridge.new(remoteName: string)
 				self._id = SerdesLayer.FromIdentifier(self._name)
 				if timer > nextOutput then
 					nextOutput += 0.1
-					print("[BridgeNet] waiting for (" .. self._name .. ") to be replicated to the client")
+					print(string.format("[BridgeNet] waiting for %* to be created on the server", self._name))
 				end
 			until self._id ~= nil or timer >= 10
 		end)
@@ -477,7 +477,7 @@ end
 	})
 	```
 	
-	@param middlewareTable { (...any) -> nil }
+	@param middlewareTbl { (...any) -> nil }
 	@return nil
 ]=]
 function ClientBridge:SetOutboundMiddleware(middlewareTbl: { (plr: Player, ...any) -> ...any })
@@ -507,7 +507,7 @@ end
 	})
 	```
 	
-	@param middlewareTable { (...any) -> nil }
+	@param middlewareTbl { (...any) -> nil }
 	@return nil
 ]=]
 function ClientBridge:SetInboundMiddleware(middlewareTbl: { (plr: Player, ...any) -> ...any })

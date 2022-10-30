@@ -28,7 +28,16 @@ local isServer = RunService:IsServer()
 	@function Identifiers
 	@within BridgeNet
 	
+	Returns a dictionary of identifiers based off of the passed array of strings.
+	```lua
+	local Stuff = BridgeNet.Identifiers({
+		"Foo",
+		"Bar",
+	})
 	
+	print(Stuff.Foo)
+	print(Stuff.Bar)
+	```
 	
 	@return { [string]: string }
 ]=]
